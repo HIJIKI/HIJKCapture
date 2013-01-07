@@ -1,0 +1,77 @@
+//--------------------------------------------------------------------------------------------------
+//= スクリーンキャプチャモジュール
+//--------------------------------------------------------------------------------------------------
+
+	//----------------------------------------------------------------------------------------------
+	//= 命令マクロ
+	//----------------------------------------------------------------------------------------------
+		#define GetScreenShot(%1=0, %2=0, %3=ginfo_dispx, %4=ginfo_dispy, %5=1) _GetScreenShot %1, %2, %3, %4, %5
+
+	//----------------------------------------------------------------------------------------------
+	//= モジュール開始
+	//----------------------------------------------------------------------------------------------
+		#module _GetScreenShot_
+			//--------------------------------------------------------------------------------------
+			//= 使用ライブラリの登録
+			//--------------------------------------------------------------------------------------
+				#uselib	"gdi32.dll"
+					#func	BitBlt "BitBlt" int,int,int,int,int,int,int,int,int
+					#cfunc	CreateDC "CreateDCA" sptr,sptr,sptr,int
+					#func	DeleteDC "DeleteDC" int
+				#uselib	"user32.dll"
+					#func	GetCursorInfo "GetCursorInfo" sptr
+					#func	GetIconInfo "GetIconInfo" sptr,sptr
+					#func	DrawIconEx "DrawIconEx" sptr,sptr,sptr,sptr,sptr,sptr,sptr,sptr,sptr
+
+			#define NULL		0
+			#define SRCCOPY		0x00CC0020
+			#define CAPTUREBLT	0x40000000
+
+			//--------------------------------------------------------------------------------------
+			//= スクリーンショット命令
+			//--------------------------------------------------------------------------------------
+			//	GetScreenShot p1, p2, p3, p4, p5
+			//
+			//	p1=0～?(0)	: キャプチャ開始X座標
+			//	p2=0～?(0)	: キャプチャ開始Y座標
+			//	p3=1～?(-1)	: キャプチャする横幅
+			//	p4=1～?(-1)	: キャプチャする縦幅
+			//	p5=0～1(1)	: マウスを含めるか
+			//--------------------------------------------------------------------------------------
+			//	マウスカーソルを含めたスクリーンショットを撮影し、カレントポジションに描画します。
+			//	描画を反映するにはredraw命令を実行する必要があります。
+			//	マウスカーソルがキャプチャ範囲ギリギリに入っている場合などは、
+			//	マウスカーソルが描画範囲からはみ出して描画される場合があります。
+			//
+			//	p3, p4 をそれぞれ省略すると、
+			//	キャプチャ開始地点から画面端までがキャプチャされます。
+			//
+			//	p5 に 0 を設定するとキャプチャ時にマウスカーソルを含みません。
+			//--------------------------------------------------------------------------------------
+			    #deffunc _GetScreenShot int _x, int _y, int _w, int _h, int _mflag
+			    	//スクリーンショット
+					hdcScreen = CreateDC("DISPLAY", NULL, NULL, NULL)
+					BitBlt hdc, ginfo_cx, ginfo_cy, _w, _h, hdcScreen, _x, _y, SRCCOPY | CAPTUREBLT
+					DeleteDC hdcScreen
+					//マウスカーソル描画
+					if( _mflag == 1 ){
+						//マウスアイコンハンドルを取得
+						dim CursorInfo, 5
+						CursorInfo(0) = 20
+						GetCursorInfo varptr(CursorInfo)
+						//ホットスポットを取得
+						dim IconInfo, 5
+						GetIconInfo CursorInfo(2), varptr(IconInfo)
+						//カーソルを描画
+						CursorPosX = CursorInfo(3)-IconInfo(1)
+						CursorPosY = CursorInfo(4)-IconInfo(2)
+						x = CursorPosX+ginfo_cx-_x
+						y = CursorPosY+ginfo_cy-_y
+						if( CursorPosX >= _x )&( CursorPosX <= _x+_w ){
+							if( CursorPosY >= _y )&( CursorPosY <= _y+_h ){
+								DrawIconEx hdc, x, y, CursorInfo(2), 0, 0, 0, 0, 0x0003
+							}
+						}
+					}
+				return
+		#global

@@ -1,0 +1,57 @@
+//--------------------------------------------------------------------------------------------------
+//= SelectCalc.hsp
+//--------------------------------------------------------------------------------------------------
+//	範囲選択中の計算処理
+//--------------------------------------------------------------------------------------------------
+
+	//----------------------------------------------------------------------------------------------
+	//= キー入力の受付
+	//----------------------------------------------------------------------------------------------
+		CheckKeyInput
+
+	//----------------------------------------------------------------------------------------------
+	//= 終了処理(debug用)
+	//----------------------------------------------------------------------------------------------
+		if( GetKeyInput(KB_ESC) != 0 ){ goto *__end }
+
+	//----------------------------------------------------------------------------------------------
+	//= 範囲選択
+	//----------------------------------------------------------------------------------------------
+		if( SelectStartFlag == FALSE )&( GetKeyInput(MO_LEFT) == 1 ){
+			CaptureStartX = ginfo_mx
+			CaptureStartY = ginfo_my
+			CapturePosX = CaptureStartX
+			CapturePosY = CaptureStartY
+			CaptureSizeW = 1
+			CaptureSizeH = 1
+			width CaptureSizeW, CaptureSizeH, CapturePosX, CapturePosY
+			SelectStartFlag = TRUE
+		}
+		if( SelectStartFlag == TRUE )&( GetKeyInput(MO_LEFT) != 0 ){
+			//PosX, SizeW
+			if( ginfo_mx < CaptureStartX ){
+				CapturePosX = ginfo_mx
+				CaptureSizeW = CaptureStartX-CapturePosX
+			} else {
+				CapturePosX = CaptureStartX
+				CaptureSizeW = ginfo_mx-CapturePosX
+			}
+			//PosY, SizeH
+			if( ginfo_my < CaptureStartY ){
+				CapturePosY = ginfo_my
+				CaptureSizeH = CaptureStartY-CapturePosY
+			} else {
+				CapturePosY = CaptureStartY
+				CaptureSizeH = ginfo_my-CapturePosY
+			}
+			width CaptureSizeW, CaptureSizeH, CapturePosX, CapturePosY
+		}
+
+	//----------------------------------------------------------------------------------------------
+	//= キャプチャ開始
+	//----------------------------------------------------------------------------------------------
+		if( SelectStartFlag == TRUE )&( GetKeyInput(MO_LEFT) == 0 ){
+			gsel SCR_MAIN,		-1
+			gsel SCR_SELECT,	-1
+			CaptureStartFlag = TRUE
+		}
