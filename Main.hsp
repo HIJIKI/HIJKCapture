@@ -4,8 +4,8 @@
 //	メインソース
 //--------------------------------------------------------------------------------------------------
 
-	#define PROGRAM_NAME		"DesktopCapture"
-	#define PROGRAM_VERSION		"0.02"
+	#define PROGRAM_NAME		"HIJKCapture"
+	#define PROGRAM_VERSION		"0.03"
 
 	//----------------------------------------------------------------------------------------------
 	//= ヘッダーファイルをインクルード
@@ -28,7 +28,7 @@
 			if( CaptureStartFlag == TRUE ){
 				goto *__SelectToEdit
 			}
-			wait WAITIME
+			wait WAITTIME
 		goto *__Select
 
 	//----------------------------------------------------------------------------------------------
@@ -37,9 +37,28 @@
 		*__SelectToEdit
 			//スクリーンショット撮影
 			buffer SCR_SSBUF, CaptureSizeW, CaptureSizeH
-			GetScreenShot CapturePosX, CapturePosY, CaptureSizeW, CaptureSizeH
-			//編集ウィンドウ初期化
-			screen SCR_EDIT
+			GetScreenShot CapturePosX, CapturePosY, CaptureSizeW, CaptureSizeH, 0
+			//ペンバッファ初期化
+			buffer SCR_PENBUF, CaptureSizeW, CaptureSizeH
+			COLSET_ALPHA:boxf
+			//編集ウィンドウ初期化(最小化ボタンを消すためにまず非表示)
+			screen SCR_EDIT, EDITWINDOW_SIZE_W, EDITWINDOW_SIZE_H, 2+4
+			//最小化/最大化ボタンを無効化しウィンドウを表示
+			StyleAdd hwnd, $20000, 1+0 : gsel SCR_EDIT, 1
+			//編集画面用変数を初期化
+			EditPenSize = 5
+			EditColor = 0
+			if( CaptureSizeW < EDITWINDOW_SIZE_W ){
+				EditPosX = ginfo_winx/2-CaptureSizeW/2
+			} else {
+				EditPosX = 24
+			}
+			if( CaptureSizeH < EDITWINDOW_SIZE_H ){
+				EditPosY = ginfo_winy/2-CaptureSizeH/2
+			} else {
+				EditPosY = 24
+			}
+
 		goto *__Edit
 
 	//----------------------------------------------------------------------------------------------
