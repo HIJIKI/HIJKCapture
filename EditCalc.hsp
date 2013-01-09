@@ -43,23 +43,25 @@
 	//----------------------------------------------------------------------------------------------
 	//= ÉyÉì / è¡ÇµÉSÉÄ
 	//----------------------------------------------------------------------------------------------
-		x = MousePosX()-EditPosX
-		y = MousePosY()-EditPosY
-		oldx = OldMousePosX-EditPosX
-		oldy = OldMousePosY-EditPosY
-		//ÉyÉì
-		if( GetKeyInput(MO_LEFT) != 0 ){
-			gsel SCR_PENBUF
-			ColorRef EditPenColor
-			hjkLine x, y, oldx, oldy, EditPenSize
-			gsel SCR_EDIT
-		}
-		//è¡ÇµÉSÉÄ
-		if( GetKeyInput(MO_RIGHT) != 0 ){
-			gsel SCR_PENBUF
-			COLSET_ALPHA
-			hjkLine x, y, oldx, oldy, EditPenSize*2
-			gsel SCR_EDIT
+		if( MouseEditRange() == 1 ){
+			x = MousePosX()-EditPosX
+			y = MousePosY()-EditPosY
+			oldx = OldMousePosX-EditPosX
+			oldy = OldMousePosY-EditPosY
+			//ÉyÉì
+			if( GetKeyInput(MO_LEFT) != 0 ){
+				gsel SCR_PENBUF
+				ColorRef EditPenColor
+				hjkLine x, y, oldx, oldy, EditPenSize
+				gsel SCR_EDIT
+			}
+			//è¡ÇµÉSÉÄ
+			if( GetKeyInput(MO_RIGHT) != 0 ){
+				gsel SCR_PENBUF
+				COLSET_ALPHA
+				hjkLine x, y, oldx, oldy, EditPenSize*2
+				gsel SCR_EDIT
+			}
 		}
 
 	//----------------------------------------------------------------------------------------------

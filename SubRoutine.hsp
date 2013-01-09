@@ -77,6 +77,21 @@
 			gsel SCR_PENBUF
 			COLSET_ALPHA
 			boxf
+			gsel SCR_EDIT
+		return
+
+	//----------------------------------------------------------------------------------------------
+	//= 保存画像バッファ作成
+	//----------------------------------------------------------------------------------------------
+		*__MakeSaveBuffer
+			buffer SCR_SAVEBUF, CaptureSizeW, CaptureSizeH
+			gmode 0
+			pos 0, 0
+			gcopy SCR_SSBUF, 0, 0, CaptureSizeW, CaptureSizeH
+			COLSET_ALPHA
+			gmode 4, , , 256
+			pos 0, 0
+			gcopy SCR_PENBUF, 0, 0, CaptureSizeW, CaptureSizeH
 		return
 
 	//----------------------------------------------------------------------------------------------
@@ -89,6 +104,13 @@
 	//= ローカルへ保存ボタン
 	//----------------------------------------------------------------------------------------------
 		*__LocalSave
+			dialog "png",17,"PNG"
+			if( stat == 1 ){
+				savepath = ""+getpath(refstr, 1)+".png"
+				gosub *__MakeSaveBuffer
+				pngsave ""+savepath
+				goto *__end
+			}
 		return
 
 	//----------------------------------------------------------------------------------------------
@@ -97,3 +119,19 @@
 		*__Cancel
 			goto *__end
 		return
+
+	//----------------------------------------------------------------------------------------------
+	//= マウスが編集画面有効範囲内にあるかを判別
+	//----------------------------------------------------------------------------------------------
+		#defcfunc MouseEditRange
+			ret = 0
+			if( MousePosX() >= 0 ){
+				if( MousePosX() <= EDITWINDOW_SIZE_W ){
+					if( MousePosY() >= 0+PALETTEBAR_SIZE_H ){
+						if( MousePosY() <= EDITWINDOW_SIZE_H-CTRLBAR_SIZE_H ){
+							ret = 1
+						}
+					}
+				}
+			}
+		return ret
