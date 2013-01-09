@@ -5,13 +5,14 @@
 //--------------------------------------------------------------------------------------------------
 
 	#define PROGRAM_NAME		"HIJKCapture"
-	#define PROGRAM_VERSION		"0.03"
+	#define PROGRAM_VERSION		"0.04"
 
 	//----------------------------------------------------------------------------------------------
 	//= ヘッダーファイルをインクルード
 	//----------------------------------------------------------------------------------------------
 		#include "define_h.hsp"
 		#include "module_h.hsp"
+		#include "array_h.hsp"
 
 	//----------------------------------------------------------------------------------------------
 	//= 初期化
@@ -25,41 +26,8 @@
 			gsel SCR_SELECT
 			#include "SelectCalc.hsp"
 			#include "SelectGdraw.hsp"
-			if( CaptureStartFlag == TRUE ){
-				goto *__SelectToEdit
-			}
 			wait WAITTIME
 		goto *__Select
-
-	//----------------------------------------------------------------------------------------------
-	//= 範囲選択ループから編集ループへ移る際の引継ぎ処理
-	//----------------------------------------------------------------------------------------------
-		*__SelectToEdit
-			//スクリーンショット撮影
-			buffer SCR_SSBUF, CaptureSizeW, CaptureSizeH
-			GetScreenShot CapturePosX, CapturePosY, CaptureSizeW, CaptureSizeH, 0
-			//ペンバッファ初期化
-			buffer SCR_PENBUF, CaptureSizeW, CaptureSizeH
-			COLSET_ALPHA:boxf
-			//編集ウィンドウ初期化(最小化ボタンを消すためにまず非表示)
-			screen SCR_EDIT, EDITWINDOW_SIZE_W, EDITWINDOW_SIZE_H, 2+4
-			//最小化/最大化ボタンを無効化しウィンドウを表示
-			StyleAdd hwnd, $20000, 1+0 : gsel SCR_EDIT, 1
-			//編集画面用変数を初期化
-			EditPenSize = 5
-			EditColor = 0
-			if( CaptureSizeW < EDITWINDOW_SIZE_W ){
-				EditPosX = ginfo_winx/2-CaptureSizeW/2
-			} else {
-				EditPosX = 24
-			}
-			if( CaptureSizeH < EDITWINDOW_SIZE_H ){
-				EditPosY = ginfo_winy/2-CaptureSizeH/2
-			} else {
-				EditPosY = 24
-			}
-
-		goto *__Edit
 
 	//----------------------------------------------------------------------------------------------
 	//= 編集ループ
@@ -72,7 +40,6 @@
 		goto *__Edit
 
 	//----------------------------------------------------------------------------------------------
-	//= 終了処理
+	//= サブルーチン
 	//----------------------------------------------------------------------------------------------
-		*__end
-			end
+		#include "SubRoutine.hsp"

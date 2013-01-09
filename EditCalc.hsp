@@ -7,7 +7,12 @@
 	//----------------------------------------------------------------------------------------------
 	//= キー入力の受付
 	//----------------------------------------------------------------------------------------------
-		CheckKeyInput
+		CheckKeyInput 1
+
+	//----------------------------------------------------------------------------------------------
+	//= ボタン計算処理
+	//----------------------------------------------------------------------------------------------
+		mgButtonCalc
 
 	//----------------------------------------------------------------------------------------------
 	//= 終了処理(debug用)
@@ -31,19 +36,8 @@
 	//----------------------------------------------------------------------------------------------
 		MouseWheel = mousew
 		if( MouseWheel != 0 ){
-			if( EditPenSize > 16 ){
-				tmp = 5//増減値
-			} else {
-				tmp = 1
-			}
-			if( MouseWheel < 0 ){
-				EditPenSize-tmp
-				if( EditPenSize < 1 ){
-					EditPenSize = 1
-				}
-			} else {
-				EditPenSize+tmp
-			}
+			EditPenSize += MouseWheel/120
+			if( EditPenSize < 1 ){ EditPenSize = 1 }
 		}
 
 	//----------------------------------------------------------------------------------------------
@@ -56,7 +50,7 @@
 		//ペン
 		if( GetKeyInput(MO_LEFT) != 0 ){
 			gsel SCR_PENBUF
-			color 0,0,0
+			ColorRef EditPenColor
 			hjkLine x, y, oldx, oldy, EditPenSize
 			gsel SCR_EDIT
 		}
@@ -64,7 +58,7 @@
 		if( GetKeyInput(MO_RIGHT) != 0 ){
 			gsel SCR_PENBUF
 			COLSET_ALPHA
-			hjkLine x, y, oldx, oldy, EditPenSize
+			hjkLine x, y, oldx, oldy, EditPenSize*2
 			gsel SCR_EDIT
 		}
 

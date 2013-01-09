@@ -23,6 +23,7 @@
 		#enum SCR_SSBUF										//スクリーンショットのバッファ
 		#enum SCR_PENBUF									//ペン編集のバッファ
 		#enum SCR_EDIT										//編集画面
+		#enum SCR_BUTTONICON								//ボタンアイコン
 
 	//----------------------------------------------------------------------------------------------
 	//= ウィンドウサイズ定数
@@ -37,3 +38,20 @@
 		#define COLSET_BOX		color 150,150,150
 		#define COLSET_FONT		color 255,255,255
 		#define COLSET_ALPHA	color 0,150,0
+
+		#define BUTTON_ICON_SIZE_WH				28
+
+	//----------------------------------------------------------------------------------------------
+	//= 擬似メニューバーに関する定数
+	//----------------------------------------------------------------------------------------------
+		//パレットバー
+		#const PALETTEBAR_POS_X				0
+		#const PALETTEBAR_POS_Y				0
+		#const PALETTEBAR_SIZE_W			EDITWINDOW_SIZE_W
+		#const PALETTEBAR_SIZE_H			32
+
+		//コントロールバー(アップロードや保存ボタンがあるところ)
+		#const CTRLBAR_SIZE_W				EDITWINDOW_SIZE_W
+		#const CTRLBAR_SIZE_H				32
+		#const CTRLBAR_POS_X				0
+		#const CTRLBAR_POS_Y				EDITWINDOW_SIZE_H-CTRLBAR_SIZE_H

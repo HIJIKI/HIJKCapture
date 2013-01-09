@@ -35,4 +35,26 @@
 	//= 編集ウィンドウ初期化
 	//----------------------------------------------------------------------------------------------
 		//非表示で初期化
-		screen SCR_EDIT, EDITWINDOW_SIZE_W, EDITWINDOW_SIZE_H, 2
+		screen SCR_EDIT, EDITWINDOW_SIZE_W, EDITWINDOW_SIZE_H, 2+4
+		width , , ginfo_dispx/2-ginfo_sizex/2, ginfo_dispy/2-ginfo_sizey/2
+		title ""+PROGRAM_NAME+" "+PROGRAM_VERSION
+		//最小化/最大化ボタンを無効化
+		StyleAdd hwnd, $20000, 1+0
+		//アップロード/保存/キャンセルボタン設置
+		m = "アップロード", "ローカルへ保存", "キャンセル"
+		l = *__Upload, *__LocalSave, *__Cancel
+		n = length(l)
+		margin = 4
+		x = CTRLBAR_POS_X+margin/2	: y = CTRLBAR_POS_Y+margin/2
+		w = CTRLBAR_SIZE_W/n		: h = CTRLBAR_SIZE_H-margin/2
+		objsize w, h
+		repeat n
+			pos x+(w+margin)*cnt, y
+			button gosub ""+m(cnt), l(cnt)
+		loop
+
+	//----------------------------------------------------------------------------------------------
+	//= ボタンアイコンバッファ初期化
+	//----------------------------------------------------------------------------------------------
+		celload "data/image/clearicon.png", SCR_BUTTONICON
+		celdiv SCR_BUTTONICON, BUTTON_ICON_SIZE_WH, BUTTON_ICON_SIZE_WH, BUTTON_ICON_SIZE_WH/2, BUTTON_ICON_SIZE_WH/2

@@ -1,3 +1,5 @@
+#define CheckKeyInput(%1=0)	_CheckKeyInput %1
+
 #module _GetKeyInput_
 	//----------------------------------------------------------------------------------------------
 	//= モジュール初期化命令(インクルード時に自動実行)
@@ -21,15 +23,25 @@
 	//----------------------------------------------------------------------------------------------
 	//= 登録したキーの状態をチェックする命令
 	//----------------------------------------------------------------------------------------------
-	// この命令は1ループに1回必ず呼び出すこと。
+	// CheckKeyInput p1
+	//
+	// p1=0～1(0) : ウィンドウアクティブチェックON/OFF
 	//----------------------------------------------------------------------------------------------
-	#deffunc CheckKeyInput
+	// この命令は1ループに1回必ず呼び出すこと。
+	// p1が1の場合は、HSPウィンドウがアクティブでない場合にはキー入力が無効になります。
+	// p1が0か省略された場合は、すべての状況下でキー入力を行ないます。
+	//----------------------------------------------------------------------------------------------
+	#deffunc _CheckKeyInput int _wac
 		repeat inKeyCnt
-			getkey inKeyBuf(cnt), inKeyCode(cnt)
-			if(inKeyBuf(cnt) == 1) {
-				inKeyStat(cnt)++
-			} else {
+			if( _wac == 1 )&( ginfo_act == -1 ){
 				inKeyStat(cnt) = 0
+			} else {
+				getkey inKeyBuf(cnt), inKeyCode(cnt)
+				if(inKeyBuf(cnt) == 1) {
+					inKeyStat(cnt)++
+				} else {
+					inKeyStat(cnt) = 0
+				}
 			}
 		loop
 	return
@@ -62,7 +74,7 @@ GetKeyInput_init
 	AddKeyInput 37	//←
 	AddKeyInput 39	//→
 	*__main
-		CheckKeyInput
+		CheckKeyInput 1
 		color 255,255,255:boxf:color:pos 16, 16
 		repeat KEY_MAX
 			mes "キー"+cnt+"の状態:"+GetKeyInput(cnt)

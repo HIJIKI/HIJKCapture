@@ -1,0 +1,30 @@
+//--------------------------------------------------------------------------------------------------
+//= COLORREF Module type1 (RGB)
+//--------------------------------------------------------------------------------------------------
+#define ctype RgbToRef(%1,%2,%3)	(%1<<16)|(%2<<8)|%3
+#define ColorRef(%1)				color 0xff&(%1>>16), 0xff&(%1>>8), 0xff&%1
+#define ctype RefToR(%1)			(0xff&(%1>>16))
+#define ctype RefToG(%1)			(0xff&(%1>>8))
+#define ctype RefToB(%1)			(0xff&%1)
+
+//--------------------------------------------------------------------------------------------------
+//= ˆÈ‰ºƒTƒ“ƒvƒ‹
+//--------------------------------------------------------------------------------------------------
+#if 0
+	bgcolor = RgbToRef(180, 196, 255)
+	textcolor = RgbToRef(255, 64, 80)
+
+	ColorRef bgcolor
+	boxf
+
+	ColorRef textcolor
+	mes "bgcolor:"+bgcolor
+	mes "RefToR(bgcolor):"+RefToR(bgcolor)
+	mes "RefToG(bgcolor):"+RefToG(bgcolor)
+	mes "RefToB(bgcolor):"+RefToB(bgcolor)
+	mes ""
+	mes "textcolor:"+textcolor
+	mes "RefToR(textcolor):"+RefToR(textcolor)
+	mes "RefToG(textcolor):"+RefToG(textcolor)
+	mes "RefToB(textcolor):"+RefToB(textcolor)
+#endif

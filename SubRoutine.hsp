@@ -1,0 +1,99 @@
+//--------------------------------------------------------------------------------------------------
+//= SubRoutine.hsp
+//--------------------------------------------------------------------------------------------------
+//	サブルーチン
+//--------------------------------------------------------------------------------------------------
+
+	//----------------------------------------------------------------------------------------------
+	//= 終了処理
+	//----------------------------------------------------------------------------------------------
+		*__end
+			end
+
+	//----------------------------------------------------------------------------------------------
+	//= 範囲選択ループから編集ループへ移る際の引継ぎ処理
+	//----------------------------------------------------------------------------------------------
+		*__SelectToEdit
+			//キャプチャサイズが0x0にならないために修正
+			if( CaptureSizeW < 1 ){ CaptureSizeW = 1 }
+			if( CaptureSizeH < 1 ){ CaptureSizeH = 1 }
+			//スクリーンショット撮影
+			buffer SCR_SSBUF, CaptureSizeW, CaptureSizeH
+			GetScreenShot CapturePosX, CapturePosY, CaptureSizeW, CaptureSizeH, 0
+			//ペンバッファ初期化
+			buffer SCR_PENBUF, CaptureSizeW, CaptureSizeH
+			COLSET_ALPHA:boxf
+			//編集ウィンドウを表示
+			gsel SCR_EDIT, 1
+			//編集画面用変数を初期化
+			EditPenSize = 5
+			EditColor = 0
+			if( CaptureSizeW < EDITWINDOW_SIZE_W ){
+				EditPosX = ginfo_winx/2-CaptureSizeW/2
+			} else {
+				EditPosX = 64
+			}
+			if( CaptureSizeH < EDITWINDOW_SIZE_H ){
+				EditPosY = ginfo_winy/2-CaptureSizeH/2
+			} else {
+				EditPosY = 64
+			}
+			//パレットボタン設置
+			syscolor 4	: bg = ginfo_r, ginfo_g, ginfo_b
+			margin = 2
+			w = PALETTEBAR_SIZE_H-margin*2	: h = w
+			x = PALETTEBAR_POS_X+margin		: y = PALETTEBAR_POS_Y+margin
+			foreach EditPaletteTable
+				c = RefToR(EditPaletteTable(cnt)), RefToG(EditPaletteTable(cnt)), RefToB(EditPaletteTable(cnt))
+				mgButtonColor bg, c, c, c
+				mgButton "■", *__PaletteButton, x+(w+margin)*cnt, y, w, h, 1
+				PaletteButtonID(cnt) = stat
+			loop
+			//全消しボタン設置
+			x = (PALETTEBAR_POS_X+margin)+(PALETTEBAR_SIZE_H-margin)*length(EditPaletteTable)
+			y = PALETTEBAR_POS_Y+margin
+			w = PALETTEBAR_SIZE_H-margin*2	: h = w
+			mgButtonColor bg, bg, bg, bg
+			mgButton "", *__ClearButton, x, y, w, h, 1, SCR_BUTTONICON, 0
+		return
+
+	//----------------------------------------------------------------------------------------------
+	//= パレットボタン
+	//----------------------------------------------------------------------------------------------
+		*__PaletteButton
+			foreach PaletteButtonID
+				if( PaletteButtonID(cnt) == stat ){
+					id = cnt
+					break
+				}
+			loop
+			EditPenColor = EditPaletteTable(id)
+		return
+
+	//----------------------------------------------------------------------------------------------
+	//= 全消しボタン
+	//----------------------------------------------------------------------------------------------
+		*__ClearButton
+			gsel SCR_PENBUF
+			COLSET_ALPHA
+			boxf
+		return
+
+	//----------------------------------------------------------------------------------------------
+	//= アップロードボタン
+	//----------------------------------------------------------------------------------------------
+		*__Upload
+		return
+
+	//----------------------------------------------------------------------------------------------
+	//= ローカルへ保存ボタン
+	//----------------------------------------------------------------------------------------------
+		*__LocalSave
+		return
+
+	//----------------------------------------------------------------------------------------------
+	//= キャンセルボタン
+	//----------------------------------------------------------------------------------------------
+		*__Cancel
+			goto *__end
+		return

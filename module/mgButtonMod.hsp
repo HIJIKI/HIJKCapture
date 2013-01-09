@@ -1,0 +1,366 @@
+//--------------------------------------------------------------------------------------------------
+//= rotmg風ボタンモジュール v4
+//--------------------------------------------------------------------------------------------------
+//	MAD GOD風のボタンサービスを提供するモジュールです。
+//	HSP標準の button 命令のような、複数ウィンドウへの設置は対応しておりません。
+//	ボタンを重ねて設置し、どちらにもマウスを当てた状態でクリックすると、
+//	どちらのジャンプも順番に実行されてしまう点に注意してください。
+//	ボタンの描画自体は、ボタンIDが若いものが後ろに表示されます。
+//	ボタンがクリックされた時に、システム変数statへクリックしたボタンIDが代入されます。
+//	このモジュールより先にChamferFillモジュールをincludeすれば、ボタンの描画に使用されます。
+//	このモジュールより先にMousePosモジュールをincludeすれば、ボタンのクリック判定に使用されます。
+//--------------------------------------------------------------------------------------------------
+#define	mgButton(%1="", %2, %3=ginfo_cx, %4=ginfo_cy, %5=54, %6=27, %7=0, %8=-1, %9=-1) /**/ _2=%2: _mgButton ""+%1, _2, %3, %4, %5, %6, %7, %8, %9
+#define	mgButtonPrm(%1, %2=-1, %3=-1, %4="", %5="", %6="", %7="", %8="", %9="", %10="") /**/ _2=%2: _3=%3: _4=%4: _5=%5: _6=%6: _7=%7: _8=%8: _9=%9: _10=%10: _mgButtonPrm %1, _2, _3, _4, _5, _6, _7, _8, _9, _10
+#define mgButtonClear(%1=-1) _mgButtonClear %1
+#define mgButtonColor(%1, %2, %3, %4, %5=-1)	/**/	_mgButtonColor %1, %2, %3, %4, %5
+
+#module _mgButton_
+	//----------------------------------------------------------------------------------------------
+	//= モジュール内で使用するWin32 API
+	//----------------------------------------------------------------------------------------------
+	#uselib "GDI32.DLL"
+	#func  GetTextExtentPoint32 "GetTextExtentPoint32A" int, int, int, int
+
+	//----------------------------------------------------------------------------------------------
+	//= モジュール内定数
+	//----------------------------------------------------------------------------------------------
+	#define ICON_ALPHA_COLOR			0,150,0
+	#define DEFAULT_BG_COLOR			255,255,255
+	#define DEFAULT_BG_COLOR_HOVER		255,220,133
+	#define DEFAULT_TEXT_COLOR			54,54,54
+	#define DEFAULT_TEXT_COLOR_HOVER	80,80,80
+	#define R							0
+	#define G							1
+	#define B							2
+
+	//----------------------------------------------------------------------------------------------
+	//= モジュール内で使用する命令(渡された変数をstatへ代入)
+	//----------------------------------------------------------------------------------------------
+	#deffunc local SetStat int _p
+	return _p
+
+	//----------------------------------------------------------------------------------------------
+	//= 初期化命令(include時に自動実行)
+	//----------------------------------------------------------------------------------------------
+	#deffunc mgButtonInit int _m
+		ButtonMax = _m
+		if(ButtonMax < 1){ButtonMax = 1}
+		ButtonHoverId = -1							//カーソルを当てているボタンID
+		 dim CurrentBgColor,		3				//設定背景色
+		 dim CurrentBgColorHover,	3				//設定背景色(Hover時)
+		 dim CurrentTextColor,		3				//設定文字色
+		 dim CurrentTextColorHover,	3				//設定文字色(Hover時)
+		 dim ButtonFlag,			ButtonMax		//生存フラグ
+		 dim ButtonPosX,			ButtonMax		//X座標
+		 dim ButtonPosY,			ButtonMax		//Y座標
+		 dim ButtonSizeW,			ButtonMax		//横幅
+		 dim ButtonSizeH,			ButtonMax		//縦幅
+		sdim ButtonText,			ButtonMax		//ボタンの文字内容
+		ldim ButtonLabel,			ButtonMax		//クリックした時にジャンプするラベル
+		 dim ButtonType,			ButtonMax		//ジャンプのタイプ(goto/gosub)
+		 dim ButtonBgColor,			3, ButtonMax	//ボタンの背景色
+		 dim ButtonBgColorHover,	3, ButtonMax	//ボタンの背景色(Hover時)
+		 dim ButtonTextColor,		3, ButtonMax	//ボタンの文字色
+		 dim ButtonTextColorHover,	3, ButtonMax	//ボタンの文字色(Hover時)
+		 dim ButtonIconWindowId,	ButtonMax		//アイコンボタンにする場合のウィンドウID
+		 dim ButtonIconGraphicId,	ButtonMax		//アイコンボタンにする場合の分割画像No.
+
+		 //カレントカラーをデフォルト設定に
+		 bg=DEFAULT_BG_COLOR:bgh=DEFAULT_BG_COLOR_HOVER:tx=DEFAULT_TEXT_COLOR:txh=DEFAULT_TEXT_COLOR_HOVER
+		 mgButtonColor@ bg, bgh, tx, txh
+	return
+
+	//----------------------------------------------------------------------------------------------
+	//= ボタン設置命令
+	//----------------------------------------------------------------------------------------------
+	//	mgButton "text", *label, p1, p2, p3, p4, p5, p6, p7
+	//
+	//	"text" = ボタンのテキスト
+	//	*label = 押した時にジャンプするラベル
+	//	p1 = 左上X座標
+	//	p2 = 左上Y座標
+	//	p3 = 縦幅
+	//	p4 = 横幅
+	//	p5 = 挙動のタイプ
+	//	p6 = アイコンボタンにする場合、celload,celdivされたウィンドウID
+	//	p7 = アイコンボタンにする場合、celputで出力する分割画像No.
+	//----------------------------------------------------------------------------------------------
+	//	ボタンを設置する命令。この命令はボタンを設置するだけです。
+	//	mgButtonCalc命令でボタンのクリック判定を行い、mgButtonDrawでボタンの描画を行います。
+	//	p5 が 0ならば goto / 0以外ならば gosub として動作します。
+	//	p6 / p7 / p8 / p9 はそれぞれ、(r,g,b)の順番に色を代入した1次元配列を指定してください。
+	//	p10 / p11 を省略した場合はテキストボタンとして処理されます。
+	//	この命令を実行すると、設置したボタンの[ボタンID](HSP標準のオブジェクトIDのようなもの)が
+	//	システム変数statに代入されています。
+	//----------------------------------------------------------------------------------------------
+	#deffunc _mgButton str _txt, var _label, int _x, int _y, int _w, int _h, int _type, int _icowid, int _icogid
+		//使用されていないインデックスを探す
+		Idx = -1
+		repeat ButtonMax
+			if(ButtonFlag(cnt) == 0){
+				Idx = cnt
+			}
+		loop
+		//使用されていないインデックスがなかった場合(-1)はButtonMaxを1つ拡張する
+		if(Idx == -1){
+			Idx = ButtonMax
+			ButtonMax++
+		}
+		//ボタン情報をセット
+		ButtonPosX(Idx)					= _x
+		ButtonPosY(Idx)					= _y
+		ButtonText(Idx)					= ""+_txt
+		ButtonSizeW(Idx)				= _w
+		ButtonSizeH(Idx)				= _h
+		ButtonType(Idx)					= _type
+		ButtonLabel(Idx)				= _label
+		ButtonBgColor(0, Idx)			= CurrentBgColor(R), CurrentBgColor(G), CurrentBgColor(B)
+		ButtonBgColorHover(0, Idx)		= CurrentBgColorHover(R), CurrentBgColorHover(G), CurrentBgColorHover(B)
+		ButtonTextColor(0, Idx)			= CurrentTextColor(R), CurrentTextColor(G), CurrentTextColor(B)
+		ButtonTextColorHover(0, Idx)	= CurrentTextColorHover(R), CurrentTextColorHover(G), CurrentTextColorHover(B)
+		ButtonIconWindowId(Idx)			= _icowid
+		ButtonIconGraphicId(Idx)		= _icogid
+		ButtonFlag(Idx)					= 1
+		pos ginfo_cx, ginfo_cy+_h
+	return Idx
+
+	//----------------------------------------------------------------------------------------------
+	//= ボタン内容変更命令
+	//----------------------------------------------------------------------------------------------
+	//	mgButtonPrm ボタンID, "text", *label, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11
+	//
+	//	ボタンID以外のパラメータは、mgButton(設置命令)と同様です。
+	//----------------------------------------------------------------------------------------------
+	//	内容を変更したいパラメータを入力してください。
+	//	パラメータを省略した部分は変更されません。
+	//
+	//	例：
+	//		mgButtonPrm 0, "OK", , , , , , 1
+	//
+	//	この例では、ボタンID[0]のボタンの テキスト と 挙動のタイプ のみを変更しています。
+	//----------------------------------------------------------------------------------------------
+	#deffunc _mgButtonPrm int _id, var _txt, var _label, var _x, var _y, var _w, var _h, var _type, var _icowid, var _icogid
+		//有効なIDかどうか
+		if(_id >= 0){
+			if(_id <= ButtonMax-1){
+				//そのボタンが生存しているかどうか
+				if(ButtonFlag(_id)==1){
+					//テキスト
+					if(vartype(_txt)==2){ButtonText(_id) = _txt}
+					//ラベル
+					if(vartype(_label)==1){ButtonLabel(_id) = _label}
+					//PosX
+					if(vartype(_x)==4){ButtonPosX(_id) = _x}
+					//PosY
+					if(vartype(_y)==4){ButtonPosY(_id) = _y}
+					//SizeW
+					if(vartype(_w)==4){ButtonSizeW(_id) = _w}
+					//SizeH
+					if(vartype(_h)==4){ButtonSizeH(_id) = _h}
+					//Type
+					if(vartype(_type)==4){ButtonType(_id) = _type}
+					//IconWindowId
+					if(vartype(_icowid)==4){ButtonIconWindowId(_id) = _icowid}
+					//IconGraphicId
+					if(vartype(_icogid)==4){ButtonIconGraphicId(_id) = _icogid}
+				}
+			}
+		}
+	return
+
+	//----------------------------------------------------------------------------------------------
+	//= ボタンのカラー設定命令
+	//----------------------------------------------------------------------------------------------
+	//	mgButtonColor p1, p2, p3, p4, p5
+	//
+	//	p1 = 背景色
+	//	p2 = Hover時の背景色
+	//	p3 = 文字色
+	//	p4 = Hover時の文字色
+	//	p5 = ボタンID
+	//	p1～p4は全て(r, g, b)の形式で代入された配列変数でなければなりません。
+	//	p5を省略しなかった場合は既存のボタンの色を変更する。
+	//----------------------------------------------------------------------------------------------
+	#deffunc _mgButtonColor array _bg, array _bgh, array _tx, array _txh, int _id
+		if( _id == -1 ){
+			CurrentBgColor			= _bg(R), _bg(G), _bg(B)
+			CurrentBgColorHover		= _bgh(R), _bgh(G), _bgh(B)
+			CurrentTextColor		= _tx(R), _tx(G), _tx(B)
+			CurrentTextColorHover	= _txh(R), _txh(G), _txh(B)
+		} else {
+			if( _id <= ButtonMax-1){
+				if( ButtonFlag(_id) == 1 ){
+					ButtonBgColor(0, _id) = _bg(R), _bg(G), _bg(B)
+					ButtonBgColorHover(0, _id) = _bgh(R), _bgh(G), _bgh(B)
+					ButtonTextColor(0, _id) = _tx(R), _tx(G), _tx(B)
+					ButtonTextColorHover(0, _id) = _txh(R), _txh(G), _txh(B)
+				}
+			}
+		}
+	return
+
+	//----------------------------------------------------------------------------------------------
+	//= ボタン消去命令
+	//----------------------------------------------------------------------------------------------
+	//	mgButtonClear p1
+	//
+	//	p1 = ボタンID
+	//----------------------------------------------------------------------------------------------
+	//	mgButton命令で設置したボタンを消去します。
+	//	p1を省略または負数にすると、設置されたボタン全てを消去します。
+	//----------------------------------------------------------------------------------------------
+	#deffunc _mgButtonClear int _id
+		if(_id < 0){
+			repeat ButtonMax
+				ButtonFlag(cnt) = 0
+			loop
+		} else:if(_id <= ButtonMax-1){
+			ButtonFlag(_id) = 0
+		}
+	return
+
+	//----------------------------------------------------------------------------------------------
+	//= ボタン判定処理命令
+	//----------------------------------------------------------------------------------------------
+	//	mgButtonCalc
+	//----------------------------------------------------------------------------------------------
+	//	全てのボタンに対し、カーソル/クリック判定を行います。
+	//	ボタンがクリックされた時に、システム変数statへクリックしたボタンIDが代入されます。
+	//----------------------------------------------------------------------------------------------
+	#deffunc mgButtonCalc
+		getkey _click, 1 : if(_click==1) : click++ : else : click=0
+		#ifdef _MousePos_
+			mox = MousePosX() : moy = MousePosY()
+		#else
+			mox = mousex : moy = mousey
+		#endif
+		ButtonHoverId = -1
+		repeat ButtonMax
+			if(ButtonFlag(cnt) = 1){
+				if(mox >= ButtonPosX(cnt)){
+					if(mox <= ButtonPosX(cnt)+ButtonSizeW(cnt)-1){
+						if(moy >= ButtonPosY(cnt)){
+							if(moy <= ButtonPosY(cnt)+ButtonSizeH(cnt)-1){
+								ButtonHoverId = cnt
+								if(click == 1){
+									if(ButtonType(cnt) == 0){
+										SetStat@_mgButton_ cnt
+										goto ButtonLabel(cnt)
+									} else {
+										SetStat@_mgButton_ cnt
+										gosub ButtonLabel(cnt)
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		loop
+	return
+
+	//----------------------------------------------------------------------------------------------
+	//= ボタン描画命令
+	//----------------------------------------------------------------------------------------------
+	//	mgButtonDraw
+	//----------------------------------------------------------------------------------------------
+	//	全てのボタンを描画します。
+	//	ボタンIDが若いものが後ろに表示されます。
+	//----------------------------------------------------------------------------------------------
+	#deffunc mgButtonDraw
+		font msgothic, 24
+		repeat ButtonMax
+			if(ButtonFlag(cnt) == 1){
+				//ボタンの枠
+				if( cnt == ButtonHoverId ){
+					color ButtonBgColorHover(R, cnt), ButtonBgColorHover(G, cnt), ButtonBgColorHover(B, cnt)
+				} else {
+					color ButtonBgColor(R, cnt), ButtonBgColor(G, cnt), ButtonBgColor(B, cnt)
+				}
+				//ChamferFillモジュールがインクルードされているかどうか
+				#ifdef _ChamferFill_
+					ChamferFill ButtonPosX(cnt), ButtonPosY(cnt), ButtonSizeW(cnt), ButtonSizeH(cnt)
+				#else
+					boxf ButtonPosX(cnt), ButtonPosY(cnt), ButtonPosX(cnt)+ButtonSizeW(cnt)-1, ButtonPosY(cnt)+ButtonSizeH(cnt)-1
+				#endif
+				//文字列
+				dim size, 2 : String = ButtonText(cnt)
+				GetTextExtentPoint32 hdc, varptr(String), strlen(String), varptr(size)
+				if( cnt == ButtonHoverId ){
+					color ButtonTextColorHover(R, cnt), ButtonTextColorHover(G, cnt), ButtonTextColorHover(B, cnt)
+				} else {
+					color ButtonTextColor(R, cnt), ButtonTextColor(G, cnt), ButtonTextColor(B, cnt)
+				}
+				x = ButtonPosX(cnt)+ButtonSizeW(cnt)/2
+				y = ButtonPosY(cnt)+ButtonSizeH(cnt)/2
+				pos x-size(0)/2, y-size(1)/2
+				mes ""+ButtonText(cnt)
+				//アイコン
+				if( ButtonIconWindowId(cnt) != -1 )&( ButtonIconGraphicId(cnt) != -1 ){
+					color ICON_ALPHA_COLOR
+					gmode 4, , , 256
+					pos ButtonPosX(cnt)+ButtonSizeW(cnt)/2, ButtonPosY(cnt)+ButtonSizeH(cnt)/2
+					celput ButtonIconWindowId(cnt), ButtonIconGraphicId(cnt)
+				}
+			}
+		loop
+	return
+
+#global
+mgButtonInit 1
+
+//--------------------------------------------------------------------------------------------------
+//= 以下サンプル
+//--------------------------------------------------------------------------------------------------
+#if 0
+	//ボタンを設置
+	mgButton "Enter", *__Enter, 16, 16, 64, 27, 1
+
+	//色を変えてみる
+	bg=84,84,84:bgh=128,128,128:tx=0,0,0:txh=0,0,0:mgButtonColor bg, bgh, tx, txh
+	pos 16, 51
+	//第3,4パラメータを省略した場合はカレントポジションに設置
+	mgButton "Clear", *__Clear, , , 64, 27, 1
+
+	mgButton "Set", *__Prm, 16, 86, 64, 27, 1
+
+	//----------------------------------------------------------------------------------------------
+	//= メインループ
+	//----------------------------------------------------------------------------------------------
+	*__Main
+		//処理
+		mgButtonCalc
+
+		//描画
+		redraw 0
+		color 54, 54, 54:boxf
+		
+		mgButtonDraw
+		
+		redraw 1
+		await 16
+	goto *__Main
+
+	//----------------------------------------------------------------------------------------------
+	//= サブルーチン
+	//----------------------------------------------------------------------------------------------
+		*__Enter
+			dialog "[Enter] がクリックされました。\nボタンIDは"+stat+"です。"
+		return
+
+		*__Clear
+			mgButtonClear stat
+		return
+
+		*__Prm
+			//設置済みボタンの色変更
+			bg=128,32,16: bgh=200,64,32: tx=0,0,0: txh=64,64,64
+			mgButtonColor bg, bgh, tx, txh, stat
+			//内容の変更
+			mgButtonPrm stat, "End", *__End, 32, , 320, 128, 0, bgc
+		return
+
+		*__End
+			end
+#endif
