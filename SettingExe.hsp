@@ -1,0 +1,50 @@
+//--------------------------------------------------------------------------------------------------
+//= 初期設定用実行ファイル
+//--------------------------------------------------------------------------------------------------
+	#include "hspda.as"
+	gosub *__DataLoad
+
+		screen 0, 320, 190
+		syscolor 15:boxf
+		title "HIJKCapture - 初期設定"
+
+		font "ＭＳ ゴシック",12,0
+		color 0,0,0
+		pos 20,20
+		mes "ホスト名(アドレス)"
+		pos 20,40
+		input FtpHost,280,20
+
+		font "ＭＳ ゴシック",12,0
+		color 0,0,0
+		pos 20,75
+		mes "ユーザーネーム"
+		pos 120,70
+		input FtpUserName,180,20
+
+		font "ＭＳ ゴシック",12,0
+		color 0,0,0
+		pos 40,105
+		mes "パスワード"
+		pos 120,100
+		input FtpPassword,180,20
+
+		objsize 80,30
+		pos 60,140
+		button "保存",*__SaveButton
+
+		objsize 80,30
+		pos 180,140
+		button "キャンセル",*__CancelButton
+
+	stop
+
+	*__SaveButton
+		gosub *__DataSave
+		end
+	return
+
+	*__CancelButton
+		end
+
+#include "module/SaveLoad.hsp"

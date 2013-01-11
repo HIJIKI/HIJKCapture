@@ -4,6 +4,8 @@
 //	サブルーチン
 //--------------------------------------------------------------------------------------------------
 
+	#include "module/SaveLoad.hsp"
+
 	//----------------------------------------------------------------------------------------------
 	//= 終了処理
 	//----------------------------------------------------------------------------------------------
@@ -95,10 +97,81 @@
 		return
 
 	//----------------------------------------------------------------------------------------------
+	//= サムネイルバッファ作成
+	//----------------------------------------------------------------------------------------------
+		*__MakeThumbnailBuffer
+			//画像の中心を正方形で抜き出す
+			if( CaptureSizeW <= CaptureSizeH ){
+				size = CaptureSizeW
+			} else {
+				size = CaptureSizeH
+			}
+			buffer SCR_THUMBNAILBUF1, size, size
+			x = size/2-CaptureSizeW/2
+			y = size/2-CaptureSizeH/2
+			gmode 0, CaptureSizeW, CaptureSizeH
+			pos x, y
+			gcopy SCR_SAVEBUF
+			//サムネイルを作成
+			buffer SCR_THUMBNAILBUF2, THUMBNAIL_SIZE_WH, THUMBNAIL_SIZE_WH
+			pos 0, 0
+			gzoom THUMBNAIL_SIZE_WH, THUMBNAIL_SIZE_WH, SCR_THUMBNAILBUF1, 0, 0, size, size, 1
+		return
+
+	//----------------------------------------------------------------------------------------------
 	//= アップロードボタン
 	//----------------------------------------------------------------------------------------------
 		*__Upload
+			gosub *__MakeSaveBuffer
+			pngsave TMP_IMAGE
+			gosub *__MakeThumbnailBuffer
+			pngsave TMP_THUMBNAIL
+			gosub *__UploadStart
+			if( stat == 0 ){
+				end
+			}
 		return
+
+	//----------------------------------------------------------------------------------------------
+	//= アップロード処理
+	//----------------------------------------------------------------------------------------------
+		*__UploadStart
+			//FTPサーバーへ接続
+			ftpopen ""+FtpHost, ""+USERNAME_HEADER+FtpUserName, ""+FtpPassword
+			if( stat != 0 ){
+				msg = {"データベースサーバーへのログインに失敗しました。
+				ユーザー名またはパスワードが間違っている可能性があります。
+				(ユーザー名/パスワードが正しいことを確認した上で
+				長期的にこの問題が解決しない場合は管理者へ知らせてください。)"}
+				dialog ""+msg, 1, "エラー"
+			}
+			//count.txtを取得
+			ftpget "count.txt", ""+TMP_CNT, 1
+			tmp = "":notesel tmp
+			noteload ""+TMP_CNT
+			c = int(tmp)
+			//アップロードパスを生成
+			pathImage = ""+c+".png"
+			pathThumb = "./t/"+c+".png"
+			//countをインクリメントし保存
+			c++
+			noteadd ""+c, 0, 1
+			notesave ""+TMP_CNT
+			//アップロード
+			f = 0
+			ftpput ""+TMP_IMAGE, ""+pathImage, 0		:f += stat
+			ftpput ""+TMP_THUMBNAIL, ""+pathThumb, 0	:f += stat
+			ftpput ""+TMP_CNT, "count.txt", 1			:f += stat
+			if( f == 0){
+				tmp = "http://"+FtpHost+"/hijkcapture/"+FtpUserName+"/"+pathImage
+				clipset ""+tmp
+				exec ""+tmp, 16
+			} else {
+				dialog "アップロードに失敗しました。", 1, "エラー"
+			}
+			//サーバーから切断する
+			ftpclose
+		return f
 
 	//----------------------------------------------------------------------------------------------
 	//= ローカルへ保存ボタン

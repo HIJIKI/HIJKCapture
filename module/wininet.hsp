@@ -1,0 +1,337 @@
+;---------- ---------- ---------- ---------- -------
+; 作成者のURL ---> http://www.setsuki.com/
+;---------- ---------- ---------- ---------- -------
+
+;(wininet.as)
+////////////////////////////////////////////////////
+;
+; 注意！！ これは、FTP 接続専用 です！
+;
+; ( 以下、実行可能モジュール一覧。動作確認済み )
+;
+; ftpclose    FTPセッションの終了
+; ftpdir      FTPディレクトリ移動
+; ftpdirlist  FTPディレクトリリスト取得1
+; ftpdirlist2 FTPディレクトリリスト取得2
+; ftpopen     FTPセッションの開始
+; ftpresult   FTP処理結果文字列の取得
+;
+; netexec     最小単位の処理を実行 <- 特にコレ！ FTP用にしちゃってます！
+; netinit     ネット接続の初期化
+; netterm     ネット接続の終了
+;
+; ( 以下、実装しているが、動作確認を怠ったもの )
+;
+; ftpcmd      FTPコマンドの実行 <- 特にコレ！ ちゃんと動くか不安です…
+; ftpdelete   FTPファイル削除
+; ftpget      FTPファイル取得
+; ftpmkdir    FTPディレクトリの作成
+; ftpput      FTPファイル送信
+; ftprename   FTPファイル名前変更
+; ftprmdir    FTPディレクトリの削除
+;
+////////////////////////////////////////////////////
+
+#ifdef __hsp30__
+#ifndef __WININET__
+	#define global __WININET__
+	#uselib "WININET.DLL"
+	#func global InternetOpen "InternetOpenA" sptr,sptr,sptr,sptr,sptr
+	#func global InternetCloseHandle "InternetCloseHandle" sptr
+	#func global InternetConnect "InternetConnectA" sptr,sptr,sptr,sptr,sptr,sptr,sptr,sptr
+	#func global FtpSetCurrentDirectory "FtpSetCurrentDirectoryA" sptr,sptr
+	#func global FtpGetCurrentDirectory "FtpGetCurrentDirectoryA" sptr,sptr,sptr
+	#func global FtpFindFirstFile "FtpFindFirstFileA" sptr,sptr,sptr,sptr,sptr
+	#func global InternetFindNextFile "InternetFindNextFileA" sptr,sptr
+	#func global InternetGetLastResponseInfo "InternetGetLastResponseInfoA" sptr,sptr,sptr
+	#func global FtpPutFile "FtpPutFileA" sptr,sptr,sptr,sptr,sptr
+	#func global FtpGetFile "FtpGetFileA" sptr,sptr,sptr,sptr,sptr,sptr,sptr
+	#func global FtpCommand "FtpCommandA" sptr,sptr,sptr,sptr,sptr
+	#func global FtpRenameFile "FtpRenameFileA" sptr,sptr,sptr
+	#func global FtpDeleteFile "FtpDeleteFileA" sptr,sptr
+	#func global FtpCreateDirectory "FtpCreateDirectoryA" sptr,sptr
+	#func global FtpRemoveDirectory "FtpRemoveDirectoryA" sptr,sptr
+#endif
+
+#ifndef __KERNEL32__
+#define global __KERNEL32__
+#uselib "KERNEL32.DLL"
+	#func global FileTimeToSystemTime "FileTimeToSystemTime" sptr,sptr
+#endif
+
+////////////////////////////////////////////////////
+
+// Type WIN32_FIND_DATA
+//        dwFileAttributes As Long
+//        ftCreationTime As FILETIME
+//        ftLastAccessTime As FILETIME
+//        ftLastWriteTime As FILETIME
+//        nFileSizeHigh As Long
+//        nFileSizeLow As Long
+//        dwReserved0 As Long
+//        dwReserved1 As Long
+//        cFileName As String * MAX_PATH(260)
+//        cAlternate As String * 14
+//End Type
+
+// Type SYSTEMTIME
+//        wYear As Integer            '年
+//        wMonth As Integer           '月　　（1月＝1、2月＝2・・・）
+//        wDayOfWeek As Integer       '曜日　（日曜＝0、月曜＝1・・）
+//        wDay As Integer             '日
+//        wHour As Integer            '時
+//        wMinute As Integer          '分
+//        wSecond As Integer          '秒
+//        wMilliseconds As Integer    'ミリ秒
+//End Type
+
+
+#module wininet
+////////////////////////////////////////////////////
+
+//( 共通 )
+#define TRUE  1
+#define FALSE 0
+#define NULL  0
+
+//( netinit ) InternetOpen -> AccessType
+#define global INTERNET_OPEN_TYPE_DIRECT      1 //全てのホスト名をローカルに解決
+#define global INTERNET_OPEN_TYPE_PROXY       3 //プロクシに要求を渡す
+#define global INTERNET_OPEN_TYPE_PRECONFIG   0 //レジストリに保持されている設定を利用
+
+//( ftpopen ) InternetConnect -> Port
+#define global INTERNET_DEFAULT_FTP_PORT     21 //FTP
+#define global INTERNET_DEFAULT_GOPHER_PORT  70 //Gopher
+#define global INTERNET_DEFAULT_HTTP_PORT    80 //HTTP
+#define global INTERNET_DEFAULT_HTTPS_PORT  443 //HTTPS
+
+//( ftpopen ) InternetConnect -> Service
+#define global INTERNET_SERVICE_FTP           1  //FTP
+#define global INTERNET_SERVICE_GOPHER        2  //Gopher
+#define global INTERNET_SERVICE_HTTP          3  //HTTP
+
+//( ftpput ) FtpPutFile -> Flags
+//( ftpcmd ) FtpCommand -> Flags?
+#define global FTP_TRANSFER_TYPE_ASCII        1
+#define global FTP_TRANSFER_TYPE_BINARY       2
+
+//( ftpdirlist ) FtpFindFirstFile -> Flangs
+#define global INTERNET_FLAG_RELOAD           0x80000000
+#define global INTERNET_FLAG_DONT_CACHE       0x04000000
+
+//( ftpget ) FtpGetFile -> FileAttr
+//( netexec ) WIN32_FIND_DATA -> dwFileAttributes
+#define FILE_ATTRIBUTE_ARCHIVE              0x20 //アーカイブ
+#define FILE_ATTRIBUTE_DIRECTORY            0x10 //ディレクトリ
+#define FILE_ATTRIBUTE_HIDDEN               0x02 //隠しファイル
+#define FILE_ATTRIBUTE_NORMAL               0x80 //属性を持たない
+#define FILE_ATTRIBUTE_READONLY             0x01 //読み込み専用
+#define FILE_ATTRIBUTE_SYSTEM               0x04 //システムファイル
+
+////////////////////////////////////////////////////
+// ネット接続の初期化
+//--------------------------------------------------
+#deffunc netinit
+mref stt,64
+
+	//サーバーに接続されている場合は切断する
+	if hInternet != 0 {
+		InternetCloseHandle hInternet
+	}
+
+ 	//インターネットに接続
+	InternetOpen "HSP FTP",INTERNET_OPEN_TYPE_DIRECT,NULL,NULL,0
+	hInternet=stat
+
+	if stat=0 : stt=1 : return
+
+	//変数の初期化
+	sdim dlist,1024
+	sdim fname,261
+	 dim fdata,80 : dim tm,8
+	dwSize=1024   : dwError=0
+
+	stt=0 : return
+
+////////////////////////////////////////////////////
+// ネット接続の終了
+//--------------------------------------------------
+#deffunc netterm onexit
+
+	InternetCloseHandle hInternet
+	hInternet=0
+	return
+
+////////////////////////////////////////////////////
+// FTPセッションの開始
+//--------------------------------------------------
+#deffunc ftpopen str Url, str Username,str Password, int Port
+
+	//サーバー(ホスト)に接続
+	InternetConnect hInternet, Url, INTERNET_DEFAULT_FTP_PORT, Username, Password, INTERNET_SERVICE_FTP, 0, 0
+	hFtpSession=stat
+
+	if stat=0 : stt=1 : return
+
+	stt=0 : return
+
+////////////////////////////////////////////////////
+// FTPセッションの終了
+//--------------------------------------------------
+#deffunc ftpclose
+
+	if hfiles      : InternetCloseHandle hfiles      : hfiles=0
+	if hFtpSession : InternetCloseHandle hFtpSession : hFtpSession=0
+	return
+
+////////////////////////////////////////////////////
+// FTPディレクトリ移動
+//--------------------------------------------------
+#deffunc ftpdir var ans, str str2
+
+	if hFtpSession == 0 : stt=1 : return
+
+	//カレントのディレクトリを変更
+	if strlen( str2 )>0 {
+		FtpSetCurrentDirectory hFtpSession, str2
+	}
+
+	//FTPの現在のディレクトリ名を取得
+	FtpGetCurrentDirectory hFtpSession, varptr(ans), varptr(dwSize)
+	if stat=0 : stt=1 : return
+
+	stt=0 : return
+
+////////////////////////////////////////////////////
+// 最小単位の処理を実行
+//--------------------------------------------------
+#deffunc netexec var ans
+
+	//( cFileName ) ファイル名の取得
+	memcpy fname, fdata, 260, 0, $2C
+
+	//( dwFileAttributes ) ファイルの種類
+	if fdata.0 & FILE_ATTRIBUTE_DIRECTORY {
+		fname="\""+fname+"\",<DIR>,"
+	} else {
+		fname="\""+fname+"\","+fdata.0+","
+	}
+
+	//( ftLastWriteTime ) 最終更新日を取得
+	FileTimeToSystemTime varptr(fdata.5) ,varptr(tm)
+	fname+=strf("%4d/"  ,wpeek(tm, 0)) //wYear
+	fname+=strf("%02d/" ,wpeek(tm, 2)) //wMonth
+	fname+=strf("%02d," ,wpeek(tm, 6)) //wDay
+	fname+=strf("%02d:" ,wpeek(tm, 8)) //wHour
+	fname+=strf("%02d:" ,wpeek(tm,10)) //wMinute
+	fname+=strf("%02d"  ,wpeek(tm,12)) //wSecond
+
+	noteadd fname
+
+	//次のファイルを読み込み
+	InternetFindNextFile hfiles, varptr(fdata)
+	if stat=0 : ans=1 : return
+
+	ans=0 : return
+
+////////////////////////////////////////////////////
+// FTPディレクトリリスト取得1
+//--------------------------------------------------
+#deffunc ftpdirlist
+
+	//最初のファイルを読み込み
+	FtpFindFirstFile hFtpSession, 0, varptr(fdata), 0x84000000, 0
+	hfiles=stat
+
+	dlist="" : notesel dlist
+
+	stt=0 : return
+
+////////////////////////////////////////////////////
+// FTPディレクトリリスト取得2
+//--------------------------------------------------
+#deffunc ftpdirlist2 var ans
+
+	ans = dlist : noteunsel
+	return
+
+////////////////////////////////////////////////////
+// FTPコマンドの実行
+//--------------------------------------------------
+#deffunc ftpcmd str str1
+
+	FtpCommand hFtpSession, TRUE, FTP_TRANSFER_TYPE_ASCII, str1, 0, varptr(dlist)
+	if stat=0 : stt=1 : return
+
+	stt=0 : return
+
+////////////////////////////////////////////////////
+// FTPファイル取得
+//--------------------------------------------------
+#deffunc ftpget str str1, str str2, int mode
+
+	FtpGetFile hFtpSession, str1, str2, FALSE, FILE_ATTRIBUTE_ARCHIVE, mode, 0
+	if stat=0 : stt=1 : return
+
+	stt=0 : return
+
+////////////////////////////////////////////////////
+// FTPファイル送信
+//--------------------------------------------------
+#deffunc ftpput str str1, str str2, int mode
+
+	FtpPutFile hFtpSession, str1, str2, mode, 0
+	if stat=0 : stt=1 : return
+
+	stt=0 : return
+
+////////////////////////////////////////////////////
+// FTPファイル削除
+//--------------------------------------------------
+#deffunc ftpdelete str str1
+
+	FtpDeleteFile hFtpSession, str1
+	if stat=0 : stt=1 : return
+
+	stt=0 : return
+
+////////////////////////////////////////////////////
+// FTPファイル名前変更
+//--------------------------------------------------
+#deffunc ftprename str str1, str str2
+
+	FtpRenameFile hFtpSession, str1, str2
+	if stat=0 : stt=1 : return
+
+	stt=0 : return
+
+////////////////////////////////////////////////////
+// FTPディレクトリの作成
+//--------------------------------------------------
+#deffunc ftpmkdir str str1
+
+	FtpCreateDirectory hFtpSession, str1
+	if stat=0 : stt=1 : return
+
+	stt=0 : return
+
+////////////////////////////////////////////////////
+// FTPディレクトリの削除
+//--------------------------------------------------
+#deffunc ftprmdir str str1
+
+	FtpRemoveDirectory hFtpSession, str1
+	if stat=0 : stt=1 : return
+
+	stt=0 : return
+
+////////////////////////////////////////////////////
+// FTP処理結果文字列の取得
+//--------------------------------------------------
+#deffunc ftpresult var ans
+
+	InternetGetLastResponseInfo varptr(dwError), varptr(ans), varptr(dwSize)
+	return
+
+////////////////////////////////////////////////////
+#global

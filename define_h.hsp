@@ -25,12 +25,16 @@
 		#enum SCR_EDIT										//編集画面
 		#enum SCR_BUTTONICON								//ボタンアイコン
 		#enum SCR_SAVEBUF									//画像保存前に一時的に書き出すバッファ
+		#enum SCR_THUMBNAILBUF1								//サムネイルを一時的に書き出すバッファ
+		#enum SCR_THUMBNAILBUF2								//アスペクト比保持のため2つの手順が必要なので2つのbuf
 
 	//----------------------------------------------------------------------------------------------
 	//= ウィンドウサイズ定数
 	//----------------------------------------------------------------------------------------------
 		#const EDITWINDOW_SIZE_W				800			//編集ウィンドウのサイズW
 		#const EDITWINDOW_SIZE_H				600			//編集ウィンドウのサイズH
+
+		#const THUMBNAIL_SIZE_WH				69			//Web上でのサムネイル画像のサイズ
 
 	//----------------------------------------------------------------------------------------------
 	//= 描画に関する定数
@@ -56,3 +60,11 @@
 		#const CTRLBAR_SIZE_H				32
 		#const CTRLBAR_POS_X				0
 		#const CTRLBAR_POS_Y				EDITWINDOW_SIZE_H-CTRLBAR_SIZE_H
+
+	//----------------------------------------------------------------------------------------------
+	//= FTP/アップロードに関する定数
+	//----------------------------------------------------------------------------------------------
+		#define USERNAME_HEADER				"hijkcap_"
+		#define TMP_IMAGE					"tmp_image.png"
+		#define TMP_THUMBNAIL				"tmp_thumbnail.png"
+		#define TMP_CNT						"tmp_cnt.txt"
