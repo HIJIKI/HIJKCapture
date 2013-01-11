@@ -1,0 +1,55 @@
+#define IDC_ARROW   $00007F00
+#define IDC_IBEAM   $00007F01
+#define IDC_WAIT    $00007F02
+#define IDC_CROSS   $00007F03
+#define IDC_UPARROW $00007F04
+#define IDC_SIZE    $00007F80
+#define IDC_ICON    $00007F81
+#define IDC_SIZENWSE    $00007F82
+#define IDC_SIZENESW    $00007F83
+#define IDC_SIZEWE  $00007F84
+#define IDC_SIZENS  $00007F85
+#define IDC_SIZEALL $00007F86
+#define IDC_NO  $00007F88
+#define IDC_HAND    $00007F89
+#define IDC_APPSTARTING $00007F8A
+#define IDC_HELP    $00007F8B
+#module
+#uselib "user32.dll"
+ #deffunc SetSystemCursor int a
+    mref type, 0            ;カーソルの種類
+    mref bmscr, 67
+    ; システム定義カーソルのハンドル取得
+    pm = 0, type
+    #cfunc lc "LoadCursorA" int,int
+    hCursor = lc(pm,a)      ; カーソルハンドル
+  
+    pm.0 = bmscr.13         ; ウィンドウハンドル
+    pm.1 = -12              ; GCL_HCURSOR
+    pm.2 = hCursor          ; カーソルハンドル
+    #cfunc sl"SetClassLongA" int,int,int
+    s=sl(pm.0,pm.1,pm.2)
+    ; カーソル変更
+    #cfunc sc "SetCursor" int
+    s=sc(hCursor)
+    return
+
+  #global
+//////////////////////////////////////////////////
+ 
+/*
+IDC_APPSTARTING     標準矢印カーソルおよび小型砂時計カーソル
+IDC_ARROW           標準矢印カーソル
+IDC_CROSS           十字カーソル
+IDC_IBEAM           アイビーム (縦線) カーソル
+IDC_ICON            現在は使われません
+IDC_NO              禁止カーソル
+IDC_SIZE            現在は使われません
+IDC_SIZEALL         方向矢印カーソル
+IDC_SIZENESW        斜め左下がりの両方向矢印カーソル
+IDC_SIZENS          上下両方向矢印カーソル
+IDC_SIZENWSE        斜め右下がりの両方向矢印カーソル
+IDC_SIZEWE          左右両方向矢印カーソル
+IDC_UPARROW         垂直の矢印カーソル
+IDC_WAIT
+*/

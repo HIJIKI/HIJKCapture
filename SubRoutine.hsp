@@ -16,6 +16,8 @@
 	//= 範囲選択ループから編集ループへ移る際の引継ぎ処理
 	//----------------------------------------------------------------------------------------------
 		*__SelectToEdit
+			//マウスカーソルを元に戻す
+			SetSystemCursor IDC_ARROW
 			//キャプチャサイズが0x0にならないために修正
 			if( CaptureSizeW < 1 ){ CaptureSizeW = 1 }
 			if( CaptureSizeH < 1 ){ CaptureSizeH = 1 }
