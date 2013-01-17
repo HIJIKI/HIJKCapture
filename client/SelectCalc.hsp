@@ -17,34 +17,50 @@
 	//----------------------------------------------------------------------------------------------
 	//= 範囲選択
 	//----------------------------------------------------------------------------------------------
-		if( SelectStartFlag == FALSE )&( GetKeyInput(MO_LEFT) == 1 ){
-			CaptureStartX = ginfo_mx
-			CaptureStartY = ginfo_my
-			CapturePosX = CaptureStartX
-			CapturePosY = CaptureStartY
-			CaptureSizeW = 1
-			CaptureSizeH = 1
-			width CaptureSizeW, CaptureSizeH, CapturePosX, CapturePosY
-			SelectStartFlag = TRUE
-		}
-		if( SelectStartFlag == TRUE )&( GetKeyInput(MO_LEFT) != 0 ){
-			//PosX, SizeW
-			if( ginfo_mx < CaptureStartX ){
-				CapturePosX = ginfo_mx
-				CaptureSizeW = CaptureStartX-CapturePosX
-			} else {
+		if( GetKeyInput(KB_CTRL) != 0 ){
+			//メインウィンドウを表示
+			gsel SCR_MAIN, 2
+			//操作方法ウィンドウを非表示
+			gsel SCR_SELECTHELP, -1
+			//範囲選択ウィンドウを表示
+			gsel SCR_SELECT, 2
+			//範囲選択
+			if( SelectStartFlag == FALSE )&( GetKeyInput(MO_LEFT) == 1 ){
+				CaptureStartX = ginfo_mx
+				CaptureStartY = ginfo_my
 				CapturePosX = CaptureStartX
-				CaptureSizeW = ginfo_mx-CapturePosX
-			}
-			//PosY, SizeH
-			if( ginfo_my < CaptureStartY ){
-				CapturePosY = ginfo_my
-				CaptureSizeH = CaptureStartY-CapturePosY
-			} else {
 				CapturePosY = CaptureStartY
-				CaptureSizeH = ginfo_my-CapturePosY
+				CaptureSizeW = 1
+				CaptureSizeH = 1
+				width CaptureSizeW, CaptureSizeH, CapturePosX, CapturePosY
+				SelectStartFlag = TRUE
 			}
-			width CaptureSizeW, CaptureSizeH, CapturePosX, CapturePosY
+			if( SelectStartFlag == TRUE )&( GetKeyInput(MO_LEFT) != 0 ){
+				//PosX, SizeW
+				if( ginfo_mx < CaptureStartX ){
+					CapturePosX = ginfo_mx
+					CaptureSizeW = CaptureStartX-CapturePosX
+				} else {
+					CapturePosX = CaptureStartX
+					CaptureSizeW = ginfo_mx-CapturePosX
+				}
+				//PosY, SizeH
+				if( ginfo_my < CaptureStartY ){
+					CapturePosY = ginfo_my
+					CaptureSizeH = CaptureStartY-CapturePosY
+				} else {
+					CapturePosY = CaptureStartY
+					CaptureSizeH = ginfo_my-CapturePosY
+				}
+				width CaptureSizeW, CaptureSizeH, CapturePosX, CapturePosY
+			}
+		} else {
+			gsel SCR_MAIN, -1
+			gsel SCR_SELECTHELP, 2
+			width , , ginfo_mx+16, ginfo_my+16
+			gsel SCR_SELECT
+			width 1, 1, ginfo_dispx, ginfo_dispy
+			SelectStartFlag = FALSE
 		}
 
 	//----------------------------------------------------------------------------------------------

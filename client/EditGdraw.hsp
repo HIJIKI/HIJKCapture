@@ -42,7 +42,7 @@
 		} else {
 			eps = EditPenSize
 		}
-		color 0, 0, 0
+		color RefToR(EditPenColor), RefToG(EditPenColor), RefToB(EditPenColor)
 		circle x-eps, y-eps, x+eps+1, y+eps+1, 0
 
 	//----------------------------------------------------------------------------------------------

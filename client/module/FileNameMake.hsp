@@ -1,0 +1,20 @@
+#module _FileNameMake_
+	#define DigitNumber		8			//¶¬‚³‚ê‚éƒR[ƒh‚ÌŒ…”
+	#deffunc local FileNameMakeInit
+		RndTable = "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z", "0", "1", "2", "3", "4", "5", "6", "7", "8", "9"
+	return
+	#defcfunc FileNameMake
+		ret = ""
+		repeat DigitNumber
+			ret += RndTable(rnd(length(RndTable)))
+		loop
+	return ret
+#global
+FileNameMakeInit@_FileNameMake_
+
+#if 0
+	randomize
+	repeat 16
+		mes FileNameMake()
+	loop
+#endif

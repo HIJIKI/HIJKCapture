@@ -2,27 +2,20 @@
 //= DataLoadサブルーチン(本体/設定 どちらのexeでも使用するため別ファイルで作成)
 //	本体側はSubroutine.hspにてinclude
 //--------------------------------------------------------------------------------------------------
-#define DATA_FILE		"data.dat"
+#define DATA_FILE		"hijkcapture.ini"
 
 *__DataLoad
-	exist DATA_FILE
-	if( strsize != -1 ){
-		vload_start DATA_FILE
-			vload_get FtpHost
-			vload_get FtpUserName
-			vload_get FtpPassword
-		vload_end
-	} else {
-		FtpHost = ""
-		FtpUserName = ""
-		FtpPassword = ""
-	}
+	sec = "Server"
+	INIInit DATA_FILE
+	if( INIGet(sec, "HostName") ){ FtpHost = refstr } else { FtpHost = "" }
+	if( INIGet(sec, "UserName") ){ FtpUserName = refstr } else { FtpUserName = "" }
+	if( INIGet(sec, "Password") ){ FtpPassword = refstr } else { FtpPassword = "" }
 return
 
 *__DataSave
-	vsave_start
-		vsave_put FtpHost
-		vsave_put FtpUserName
-		vsave_put FtpPassword
-	vsave_end DATA_FILE
+	sec = "Server"
+	INIInit DATA_FILE
+	INISet sec, "HostName", ""+FtpHost
+	INISet sec, "UserName", ""+FtpUserName
+	INISet sec, "Password", ""+FtpPassword
 return

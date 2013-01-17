@@ -20,6 +20,7 @@
 	//----------------------------------------------------------------------------------------------
 		#enum SCR_MAIN							=0			//メインウィンドウ
 		#enum SCR_SELECT									//範囲選択ウィンドウ
+		#enum SCR_SELECTHELP								//範囲選択中の操作方法ウィンドウ
 		#enum SCR_SSBUF										//スクリーンショットのバッファ
 		#enum SCR_PENBUF									//ペン編集のバッファ
 		#enum SCR_EDIT										//編集画面
@@ -33,6 +34,9 @@
 	//----------------------------------------------------------------------------------------------
 		#const EDITWINDOW_SIZE_W				800			//編集ウィンドウのサイズW
 		#const EDITWINDOW_SIZE_H				600			//編集ウィンドウのサイズH
+
+		#const SELECTHELP_SIZE_W				256			//範囲選択中の操作方法ウィンドウサイズW
+		#const SELECTHELP_SIZE_H				40			//範囲選択中の操作方法ウィンドウサイズH
 
 		#const THUMBNAIL_SIZE_WH				69			//Web上でのサムネイル画像のサイズ
 

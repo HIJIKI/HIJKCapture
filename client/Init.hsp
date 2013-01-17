@@ -6,6 +6,7 @@
 	//= コンパイルオプション
 	//----------------------------------------------------------------------------------------------
 		#packopt hide 1
+		randomize
 
 	//----------------------------------------------------------------------------------------------
 	//= wininetを初期化
@@ -53,8 +54,6 @@
 		GetWindowLongA hwnd, GWL_EXSTYLE
 		SetWindowLongA hwnd, GWL_EXSTYLE, stat | 0x00080000+WS_EX_TOOLWINDOW
 		SetLayered hwnd, , 1, 2
-		//ウィンドウを表示
-		gsel SCR_MAIN, 2
 
 	//----------------------------------------------------------------------------------------------
 	//= 範囲選択ウィンドウ初期化
@@ -69,6 +68,19 @@
 		gsel SCR_SELECT, 2
 
 	//----------------------------------------------------------------------------------------------
+	//= 範囲選択中操作方法ウィンドウ初期化
+	//----------------------------------------------------------------------------------------------
+		//画面外に初期化
+		bgscr SCR_SELECTHELP, SELECTHELP_SIZE_W, SELECTHELP_SIZE_H, 2, ginfo_dispx, ginfo_dispy
+		//ウィンドウを透過+タスクバーに表示しないようにする
+		GetWindowLongA hwnd, GWL_EXSTYLE
+		SetWindowLongA hwnd, GWL_EXSTYLE, stat | 0x00080000+WS_EX_TOOLWINDOW
+		SetLayered hwnd, , 128, 2
+		//ウィンドウを表示
+		gsel SCR_SELECTHELP, 2
+		gosub *__SelectHelpDraw
+
+	//----------------------------------------------------------------------------------------------
 	//= 編集ウィンドウ初期化
 	//----------------------------------------------------------------------------------------------
 		//非表示で初期化
@@ -81,9 +93,9 @@
 		m = "アップロード", "ローカルへ保存", "キャンセル"
 		l = *__Upload, *__LocalSave, *__Cancel
 		n = length(l)
-		margin = 4
-		x = CTRLBAR_POS_X+margin/2	: y = CTRLBAR_POS_Y+margin/2
-		w = CTRLBAR_SIZE_W/n		: h = CTRLBAR_SIZE_H-margin/2
+		margin = 2
+		x = CTRLBAR_POS_X+margin			: y = CTRLBAR_POS_Y+margin
+		w = (CTRLBAR_SIZE_W-margin*2)/n		: h = CTRLBAR_SIZE_H-margin*2
 		objsize w, h
 		repeat n
 			pos x+(w+margin)*cnt, y
