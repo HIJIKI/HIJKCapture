@@ -72,6 +72,14 @@
 	//= FTP
 	//----------------------------------------------------------------------------------------------
 		#include "module/wininet.hsp"
+		//[FTP]リモート側のファイルの存在を確認する, 必ずFTPに接続した状態で呼び出すこと, 存在=0, 存在しない=0以外
+		//ftpexist "filename"
+		#module _ftpexist_
+			#defcfunc ftpexist str _fn
+				ftprename _fn, _fn
+				ret = stat
+			return ret
+		#global
 
 	//----------------------------------------------------------------------------------------------
 	//= vsave/vload
