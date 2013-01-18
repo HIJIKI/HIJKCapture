@@ -23,9 +23,11 @@
 		if( ftp_login($FTP, $UserNameHeader.$UserName, $Password) ){
 			$_SESSION["UserName"] = $UserName;
 			$_SESSION["Password"] = $Password;
+			$name = substr($FileName, 0, 8);
 			//ファイルを削除
-			ftp_delete($FTP, $FileName);
-			ftp_delete($FTP, "./t/".$FileName);	//サムネイル画像
+			ftp_delete($FTP, $name.".png");
+			ftp_delete($FTP, $name.".thumb.png");
+			ftp_delete($FTP, $name.".stamp.txt");
 			//マイページへ移動
 			header('Location: mypage.php');
 		} else {

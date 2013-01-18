@@ -11,6 +11,12 @@
 		$Password = $_SESSION["Password"];
 		$FileName = $_GET["file"];
 
+		//ログインしていない場合はindexへジャンプ
+		if( !$UserName ){
+			header('Location: ./');
+			exit();
+		}
+
 	//----------------------------------------------------------------------------------------------
 	//= ページ設定
 	//----------------------------------------------------------------------------------------------
@@ -27,12 +33,19 @@
 	?>
 	<body>
 		<div class="container">
-			<p class="tcentering">
-				<div class="input-prepend tcentering">
-					<span class="add-on">画像のURL：</span>
+			<div class="urlbar_container">
+				<div class="input-prepend tcentering urlbar">
+					<span class="add-on">画像URL</span>
 					<input class="span5" type="text" value="<?php print(GetImageUrl()); ?>" onclick="this.select(0,this.value.length)">
 				</div>
-			</p>
+				<div class="tcentering">
+					<i class="icon-chevron-down"></i>
+				</div>
+				<div class="input-prepend tcentering urlbar">
+					<span class="add-on">短縮URL</span>
+					<input class="span5" type="text" value="<?php print(GetTinyUrl(GetImageUrl())); ?>" onclick="this.select(0,this.value.length)">
+				</div>
+			</div>
 			<!--プレビュー-->
 			<?php
 				$Path = $UserName."/".$FileName;

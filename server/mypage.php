@@ -10,6 +10,12 @@
 		$UserName = $_SESSION["UserName"];
 		$Password = $_SESSION["Password"];
 
+		//ログインしていない場合はindexへジャンプ
+		if( !$UserName ){
+			header('Location: ./');
+			exit();
+		}
+
 	//----------------------------------------------------------------------------------------------
 	//= ページ設定
 	//----------------------------------------------------------------------------------------------
@@ -29,6 +35,10 @@
 			$_SESSION["Password"] = $Password;
 			//ファイルリストを取得
 			$FileList = GetFileList($FTP);
+			//タイムスタンプを取得
+			$TimeStamp = GetTimeStamp($FileList);
+			//タイムスタンプを元にファイルリストをソート
+			array_multisort($TimeStamp, $FileList);
 		} else {
 			Error("ログインに失敗しました。<br>
 					ユーザー名またはパスワードが正しくありません。");
@@ -62,9 +72,13 @@
 			</div>
 			<p class="myhr"></p>
 			<?php
+//				print(var_dump($FileList));
+//				print("<br>");
+//				print(var_dump($TimeStamp));
 				$m = count($FileList);
-				for( $i=0;$i<$m;$i++ ){
-					DrawThumbnail($FileList[$i]);
+				for( $i=$m-1;$i>=0;$i-- ){
+					$file = substr($FileList[$i], 0, 8);
+					DrawThumbnail($file);
 				}
 			?>
 			<p class="myhr"></p>
