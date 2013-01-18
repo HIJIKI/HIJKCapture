@@ -71,4 +71,4 @@
 		#define USERNAME_HEADER				"hijkcap_"
 		#define TMP_IMAGE					"tmp_image.png"
 		#define TMP_THUMBNAIL				"tmp_thumbnail.png"
-		#define TMP_CNT						"tmp_cnt.txt"
+		#define TMP_TIMESTAMP				"tmp_timestamp.txt"

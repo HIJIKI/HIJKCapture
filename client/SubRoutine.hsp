@@ -121,6 +121,25 @@
 		return
 
 	//----------------------------------------------------------------------------------------------
+	//= タイムスタンプファイル作成
+	//----------------------------------------------------------------------------------------------
+		*__MakeTimeStamp
+			//日付を取得
+			year	= strf("%04d", gettime(0))
+			month	= strf("%02d", gettime(1))
+			day		= strf("%02d", gettime(3))
+			hour	= strf("%02d", gettime(4))
+			minute	= strf("%02d", gettime(5))
+			second	= strf("%02d", gettime(6))
+			time = ""+year+"/"+month+"/"+day+" "+hour+":"+minute+":"+second
+			//一時ファイル作成
+			tmp = ""
+			notesel tmp
+			noteadd ""+time, 0, 1
+			notesave TMP_TIMESTAMP
+		return
+
+	//----------------------------------------------------------------------------------------------
 	//= アップロードボタン
 	//----------------------------------------------------------------------------------------------
 		*__Upload
@@ -128,6 +147,7 @@
 			pngsave TMP_IMAGE
 			gosub *__MakeThumbnailBuffer
 			pngsave TMP_THUMBNAIL
+			gosub *__MakeTimeStamp
 			gosub *__UploadStart
 			if( stat == 0 ){
 				end
@@ -150,24 +170,29 @@
 			//アップロードファイル名を生成
 			repeat
 				//8桁のランダム英数字を生成
-				filename = ""+FileNameMake()+".png"
+				filename = ""+FileNameMake()
 				//同名ファイルがリモートに既に存在するかチェック
-				if( ftpexist(filename) != 0 ){
+				if( ftpexist(""+filename+".png") != 0 ){
 					break
 				} else {
 					dialog "既に存在するよ："+filename
 				}
 			loop
 			//アップロードパス生成
-			pathImage = ""+filename
-			pathThumb = "./t/"+filename
+			pathImage = ""+filename+".png"
+			pathThumb = ""+filename+".thumb.png"
+			pathStamp = ""+filename+".stamp.txt"
 			//アップロード
 			f = 0
 			ftpput ""+TMP_IMAGE, ""+pathImage, 0		:f += stat
 			ftpput ""+TMP_THUMBNAIL, ""+pathThumb, 0	:f += stat
+			ftpput ""+TMP_TIMESTAMP, ""+pathStamp, 0	:f += stat
 			if( f == 0){
+				//クリップボードにセット
 				tmp = "http://"+FtpHost+"/hijkcapture/"+FtpUserName+"/"+pathImage
 				clipset ""+tmp
+				//ブラウザで開く
+				tmp = "http://"+FtpHost+"/hijkcapture/open.php?file="+pathImage
 				exec ""+tmp, 16
 			} else {
 				dialog "アップロードに失敗しました。", 1, "エラー"
