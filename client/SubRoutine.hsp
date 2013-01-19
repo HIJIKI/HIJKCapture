@@ -150,6 +150,9 @@
 			gosub *__MakeTimeStamp
 			gosub *__UploadStart
 			if( stat == 0 ){
+				delete TMP_IMAGE
+				delete TMP_THUMBNAIL
+				delete TMP_TIMESTAMP
 				end
 			}
 		return
