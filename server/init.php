@@ -89,4 +89,16 @@
 	function GetTinyUrl($url) {
 		return file_get_contents("http://tinyurl.com/api-create.php?url=".$url);
 	}
+
+//--------------------------------------------------------------------------------------------------
+//= ログインしているかをチェックし、していなければindexへ戻す関数
+//--------------------------------------------------------------------------------------------------
+	function LoginCheck() {
+		if( !isset($_COOKIE["UserName"]) ){
+			if( !isset($_COOKIE["Password"]) ){
+				header('Location: ./');
+				exit();
+			}
+		}
+	}
 ?>
