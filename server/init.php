@@ -3,6 +3,7 @@
 //= 初期化
 //--------------------------------------------------------------------------------------------------
 	include("init_session.php");							//セッション
+	include("init_cookie.php");								//クッキー
 	include("init_server.php");								//FTPサーバー設定
 
 //--------------------------------------------------------------------------------------------------
@@ -21,7 +22,7 @@
 //		$FilePath = "./".$UserName."/".$file;
 //		$FilePathT = "./".$UserName."/t/".$file;
 //		$put = "<a class=\"span1 thumbnail\" href=\"$FilePath\" target=\"_blank\"><img src=\"$FilePathT\"></a>";
-		$UserName	= $_SESSION["UserName"];
+		$UserName	= $_COOKIE["UserName"];
 		$FilePath	= "./".$UserName."/".$file.".png";
 		$FilePathT	= "./".$UserName."/".$file.".thumb.png";
 		$LinkPath	= "open.php?file=".$file.".png";
@@ -56,7 +57,7 @@
 //= array タイムスタンプ配列取得
 //--------------------------------------------------------------------------------------------------
 	function GetTimeStamp($f){
-		$UserName = $_SESSION["UserName"];
+		$UserName = $_COOKIE["UserName"];
 		$ret = array();
 		$num = count($f);
 		for( $i=0 ; $i<$num ; $i++ ){
@@ -71,7 +72,7 @@
 //= str 画像のURLを返す
 //--------------------------------------------------------------------------------------------------
 	function GetImageUrl(){
-		$UserName = $_SESSION["UserName"];
+		$UserName = $_COOKIE["UserName"];
 		$FileName = $_GET["file"];
 		$URL = "";
 		$URL = $URL."http://";

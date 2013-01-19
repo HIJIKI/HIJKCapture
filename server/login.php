@@ -20,8 +20,9 @@
 		}
 		//ログイン
 		if( ftp_login($FTP, $UserNameHeader.$UserName, $Password) ){
-			$_SESSION["UserName"] = $UserName;
-			$_SESSION["Password"] = $Password;
+			//クッキーにID,PASSを保存
+			setcookie("UserName", $UserName, time()+$SessionLifeTime);
+			setcookie("Password", $Password, time()+$SessionLifeTime);
 			//マイページへ移動
 			header('Location: mypage.php');
 		} else {

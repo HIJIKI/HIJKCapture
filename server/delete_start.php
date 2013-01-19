@@ -7,9 +7,15 @@
 	//----------------------------------------------------------------------------------------------
 	//= セッションを取得
 	//----------------------------------------------------------------------------------------------
-		$UserName = $_SESSION["UserName"];
-		$Password = $_SESSION["Password"];
+		$UserName = $_COOKIE["UserName"];
+		$Password = $_COOKIE["Password"];
 		$FileName = $_GET["file"];
+
+		//ログインしていない場合はindexへジャンプ
+		if( !$UserName ){
+			header('Location: ./');
+			exit();
+		}
 
 	//----------------------------------------------------------------------------------------------
 	//= FTPへ接続
@@ -21,10 +27,8 @@
 		}
 		//ログイン
 		if( ftp_login($FTP, $UserNameHeader.$UserName, $Password) ){
-			$_SESSION["UserName"] = $UserName;
-			$_SESSION["Password"] = $Password;
-			$name = substr($FileName, 0, 8);
 			//ファイルを削除
+			$name = substr($FileName, 0, 8);
 			ftp_delete($FTP, $name.".png");
 			ftp_delete($FTP, $name.".thumb.png");
 			ftp_delete($FTP, $name.".stamp.txt");

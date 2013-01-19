@@ -7,8 +7,8 @@
 	//----------------------------------------------------------------------------------------------
 	//= セッションを取得
 	//----------------------------------------------------------------------------------------------
-		$UserName = $_SESSION["UserName"];
-		$Password = $_SESSION["Password"];
+		$UserName = $_COOKIE["UserName"];
+		$Password = $_COOKIE["Password"];
 
 		//ログインしていない場合はindexへジャンプ
 		if( !$UserName ){
@@ -31,8 +31,6 @@
 		}
 		//ログイン
 		if( ftp_login($FTP, $UserNameHeader.$UserName, $Password) ){
-			$_SESSION["UserName"] = $UserName;
-			$_SESSION["Password"] = $Password;
 			//ファイルリストを取得
 			$FileList = GetFileList($FTP);
 			//タイムスタンプを取得
