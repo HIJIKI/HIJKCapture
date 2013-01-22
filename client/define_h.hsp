@@ -24,6 +24,7 @@
 		#enum SCR_SSBUF										//スクリーンショットのバッファ
 		#enum SCR_PENBUF									//ペン編集のバッファ
 		#enum SCR_EDIT										//編集画面
+		#enum SCR_ANDOBUF									//アンドゥバッファ
 		#enum SCR_BUTTONICON								//ボタンアイコン
 		#enum SCR_SAVEBUF									//画像保存前に一時的に書き出すバッファ
 		#enum SCR_THUMBNAILBUF1								//サムネイルを一時的に書き出すバッファ

@@ -27,11 +27,13 @@
 		#enum MO_CENTER
 		#enum KB_ESC
 		#enum KB_CTRL
+		#enum KB_Z
 		AddKeyInput 1
 		AddKeyInput 2
 		AddKeyInput	4
 		AddKeyInput 27
 		AddKeyInput 17
+		AddKeyInput 'Z'
 
 	//----------------------------------------------------------------------------------------------
 	//= ‰ü—Çmes–½—ß

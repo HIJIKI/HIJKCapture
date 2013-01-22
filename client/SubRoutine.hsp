@@ -27,6 +27,9 @@
 			//ペンバッファ初期化
 			buffer SCR_PENBUF, CaptureSizeW, CaptureSizeH
 			COLSET_ALPHA:boxf
+			//アンドゥバッファ初期化
+			buffer SCR_ANDOBUF, CaptureSizeW, CaptureSizeH
+			COLSET_ALPHA:boxf
 			//編集ウィンドウを表示
 			gsel SCR_EDIT, 1
 			//編集画面用変数を初期化
@@ -57,8 +60,14 @@
 			x = (PALETTEBAR_POS_X+margin)+(PALETTEBAR_SIZE_H-margin)*length(EditPaletteTable)
 			y = PALETTEBAR_POS_Y+margin
 			w = PALETTEBAR_SIZE_H-margin*2	: h = w
-			mgButtonColor bg, bg, bg, bg
+			bgh = bg(0)+8, bg(1)+8, bg(2)+8
+			mgButtonColor bg, bgh, bg, bg
 			mgButton "", *__ClearButton, x, y, w, h, 1, SCR_BUTTONICON, 0
+			//アンドゥボタン設置
+			x += w+margin
+			mgButtonColor bg, bgh, bg, bg
+			mgButton "", *__AndoButton, x, y, w, h, 1, SCR_BUTTONICON, 2
+			UndoButtonID = stat
 		return
 
 	//----------------------------------------------------------------------------------------------
@@ -81,6 +90,30 @@
 			gsel SCR_PENBUF
 			COLSET_ALPHA
 			boxf
+			gsel SCR_EDIT
+		return
+
+	//----------------------------------------------------------------------------------------------
+	//= アンドゥボタン
+	//----------------------------------------------------------------------------------------------
+		*__AndoButton
+			mgButtonPrm UndoButtonID, , , , , , , , , 2
+			gsel SCR_PENBUF
+			gmode 1, CaptureSizeW, CaptureSizeH
+			pos 0, 0
+			gcopy SCR_ANDOBUF
+			gsel SCR_EDIT
+		return
+
+	//----------------------------------------------------------------------------------------------
+	//= アンドゥバッファ生成
+	//----------------------------------------------------------------------------------------------
+		*__MakeAndoBuffer
+			mgButtonPrm UndoButtonID, , , , , , , , , 1
+			gsel SCR_ANDOBUF
+			gmode 1, CaptureSizeW, CaptureSizeH
+			pos 0, 0
+			gcopy SCR_PENBUF
 			gsel SCR_EDIT
 		return
 

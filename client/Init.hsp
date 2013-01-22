@@ -105,7 +105,7 @@
 	//----------------------------------------------------------------------------------------------
 	//= ボタンアイコンバッファ初期化
 	//----------------------------------------------------------------------------------------------
-		celload "data/image/clearicon.png", SCR_BUTTONICON
+		celload "data/image/ButtonIcon.png", SCR_BUTTONICON
 		celdiv SCR_BUTTONICON, BUTTON_ICON_SIZE_WH, BUTTON_ICON_SIZE_WH, BUTTON_ICON_SIZE_WH/2, BUTTON_ICON_SIZE_WH/2
 
 	//----------------------------------------------------------------------------------------------

@@ -50,6 +50,10 @@
 			oldy = OldMousePosY-EditPosY
 			//ペン
 			if( GetKeyInput(MO_LEFT) != 0 ){
+				//書き始めフラグ
+				if( GetKeyInput(MO_LEFT) == 1 ){
+					gosub *__MakeAndoBuffer
+				}
 				gsel SCR_PENBUF
 				ColorRef EditPenColor
 				hjkLine x, y, oldx, oldy, EditPenSize
@@ -62,6 +66,13 @@
 				hjkLine x, y, oldx, oldy, EditPenSize*2
 				gsel SCR_EDIT
 			}
+		}
+
+	//----------------------------------------------------------------------------------------------
+	//= アンドゥショートカット
+	//----------------------------------------------------------------------------------------------
+		if( GetKeyInput(KB_CTRL) != 0 )&( GetKeyInput(KB_Z) == 1 ){
+			gosub *__AndoButton
 		}
 
 	//----------------------------------------------------------------------------------------------
