@@ -20,12 +20,12 @@
 	//----------------------------------------------------------------------------------------------
 	//= 初期設定がされていなければ終了し設定させる
 	//----------------------------------------------------------------------------------------------
-		exist "data.dat"
+		exist "hijkcapture.ini"
 		if( strsize == -1 ){
 			dialog "初期設定を行なってください。", 0, ""+PROGRAM_NAME
 			sdim ln,4096	: sdim buf,32000
-			pipeexec buf, "setting.exe", 1
-			if stat : dialog "初期設定に失敗しました。\n[setting.exe]が見つかりませんでした。",1,"エラー" : goto *__end
+			pipeexec buf, "Setting.exe", 1
+			if stat : dialog "初期設定に失敗しました。\n[Setting.exe]が見つかりませんでした。",1,"エラー" : goto *__end
 			repeat
 				pipeget ln
 				if( stat == 0 ){
@@ -33,7 +33,7 @@
 				}
 				wait 10
 			loop
-			exist "data.dat"
+			exist "hijkcapture.ini"
 			if( strsize == -1){
 				dialog "初期設定が行われなかったため終了します。",1,"エラー"
 				goto *__end
