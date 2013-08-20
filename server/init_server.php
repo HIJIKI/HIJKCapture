@@ -3,7 +3,7 @@
 //= サーバー設定
 //--------------------------------------------------------------------------------------------------
 	$UserNameHeader = "hijkcap_";			//hijkcap上のユーザー名が例えば[hijiki]だった場合 実際のユーザー名は[hijkcap_hijiki]となる
-	$ServerIP		= "holyweb.ddo.jp";
+	$ServerIP		= "holyweb.pgw.jp";
 	$ServerPort		= 21;
 
 ?>
