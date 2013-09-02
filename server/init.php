@@ -35,8 +35,8 @@
 //--------------------------------------------------------------------------------------------------
 	function GetFileList($FTP){
 		//ファイルリストを取得
-		$f = ftp_nlist( $FTP, "/" );
-		//"." ".." ".thumb" ".stamp" を無視し整形
+		$f = ftp_nlist( $FTP, "" );
+		//"." ".." ".thumb" ".stamp" "Thumbs.db" を無視し整形
 		$ret = array();
 		$num = count($f);
 		for( $i=0;$i<$num;$i++ ){
@@ -44,7 +44,9 @@
 				if( $f[$i] != ".." ){
 					if( substr_count($f[$i], ".thumb") == 0 ){
 						if( substr_count($f[$i], ".stamp") == 0 ){
-							array_push($ret, "".$f[$i]);
+							if( substr_count($f[$i], "Thumbs.db") == 0 ){
+								array_push($ret, "".$f[$i]);
+							}
 						}
 					}
 				}
