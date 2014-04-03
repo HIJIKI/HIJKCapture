@@ -69,6 +69,7 @@
 		if( SelectStartFlag == TRUE )&( GetKeyInput(MO_LEFT) == 0 ){
 			gsel SCR_MAIN,		-1
 			gsel SCR_SELECT,	-1
+			wait 25
 			CaptureStartFlag = TRUE
 		}
 
