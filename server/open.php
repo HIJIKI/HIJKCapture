@@ -35,13 +35,6 @@
 					<span class="add-on">‰æ‘œURL</span>
 					<input class="span5" type="text" value="<?php print(GetImageUrl()); ?>" onclick="this.select(0,this.value.length)">
 				</div>
-				<div class="tcentering">
-					<i class="icon-chevron-down"></i>
-				</div>
-				<div class="input-prepend tcentering urlbar">
-					<span class="add-on">’ZkURL</span>
-					<input class="span5" type="text" value="<?php print(GetTinyUrl(GetImageUrl())); ?>" onclick="this.select(0,this.value.length)">
-				</div>
 			</div>
 			<!--ƒvƒŒƒrƒ…[-->
 			<?php

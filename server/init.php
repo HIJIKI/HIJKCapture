@@ -18,10 +18,6 @@
 //= サムネイルを描画する関数
 //--------------------------------------------------------------------------------------------------
 	function DrawThumbnail($file){
-//		$UserName = $_SESSION["UserName"];
-//		$FilePath = "./".$UserName."/".$file;
-//		$FilePathT = "./".$UserName."/t/".$file;
-//		$put = "<a class=\"span1 thumbnail\" href=\"$FilePath\" target=\"_blank\"><img src=\"$FilePathT\"></a>";
 		$UserName	= $_COOKIE["UserName"];
 		$FilePath	= "./".$UserName."/".$file.".png";
 		$FilePathT	= "./".$UserName."/".$file.".thumb.png";
@@ -31,7 +27,7 @@
 	}
 
 //--------------------------------------------------------------------------------------------------
-//= array ファイルリスト取得を取得し整形する関数
+//= array ファイルリストを取得し整形する関数
 //--------------------------------------------------------------------------------------------------
 	function GetFileList($FTP){
 		//ファイルリストを取得
@@ -45,7 +41,8 @@
 					if( substr_count($f[$i], ".thumb") == 0 ){
 						if( substr_count($f[$i], ".stamp") == 0 ){
 							if( substr_count($f[$i], "Thumbs.db") == 0 ){
-								array_push($ret, "".$f[$i]);
+								$push = mb_convert_encoding($f[$i], "SJIS", "AUTO");
+								array_push($ret, $push);
 							}
 						}
 					}
@@ -56,7 +53,7 @@
 	}
 
 //--------------------------------------------------------------------------------------------------
-//= array タイムスタンプ配列取得
+//= array タイムスタンプを取得
 //--------------------------------------------------------------------------------------------------
 	function GetTimeStamp($f){
 		$UserName = $_COOKIE["UserName"];
@@ -76,9 +73,10 @@
 	function GetImageUrl(){
 		$UserName = $_COOKIE["UserName"];
 		$FileName = $_GET["file"];
+		$ServerIP = $GLOBALS['ServerIP'];
 		$URL = "";
 		$URL = $URL."http://";
-		$URL = $URL.$_SERVER["SERVER_NAME"]."/";
+		$URL = $URL.$ServerIP."/";
 		$URL = $URL."hijkcapture/";
 		$URL = $URL.$UserName."/";
 		$URL = $URL.$FileName;

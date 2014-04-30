@@ -17,6 +17,7 @@
 	//= ページ設定
 	//----------------------------------------------------------------------------------------------
 		$PageTitle = "HIJKCapture - マイページ";
+		$ViewNumber = 100;	//マイページに表示される画像件数
 
 	//----------------------------------------------------------------------------------------------
 	//= サーバーから画像ファイルリストを取得
@@ -54,12 +55,21 @@
 	?>
 	<body>
 		<div class="container">
+			<?php
+				print($UserName." さんのマイページ<br>");
+			?>
 			<div class="image-count">
 				<i class="icon-picture"></i>
 				<?php
 					$cnt = count($FileList);
+					$n = $ViewNumber;
 					if( $cnt != 0 ){
-						print(count($FileList)."個の画像が見つかりました。<br>");
+						print(count($FileList)." 件の画像が見つかりました。<br>");
+						if( $cnt > $n ){
+							print("<div class=\"alert\">");
+							print("$n 件を超える画像はマイページに表示されません。 最新の $n 件のみを表示しています。");
+							print("</div>");
+						}
 					} else {
 						print("画像ファイルが見つかりませんでした。");
 					}
@@ -71,8 +81,12 @@
 //				print("<br>");
 //				print(var_dump($TimeStamp));
 				$m = count($FileList);
-				for( $i=$m-1;$i>=0;$i-- ){
-					$file = substr($FileList[$i], 0, 8);
+				$n = $ViewNumber;
+				for( $i = 0; $i < $m; $i++ ){
+					if( $i >= $n ){
+						break;
+					}
+					$file = substr($FileList[$m-1-$i], 0, 8);
 					DrawThumbnail($file);
 				}
 			?>
