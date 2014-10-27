@@ -41,7 +41,7 @@
 					if( substr_count($f[$i], ".thumb") == 0 ){
 						if( substr_count($f[$i], ".stamp") == 0 ){
 							if( substr_count($f[$i], "Thumbs.db") == 0 ){
-								$push = $f[$i]
+								$push = mb_convert_encoding($f[$i], "SJIS", "auto");
 								array_push($ret, $push);
 							}
 						}
